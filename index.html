@@ -3,271 +3,552 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Thư viện 32 game</title>
+  <title>Thư viện game – OODLES MATH</title>
 
   <style>
     :root{
-      --bg:#f6f7fb;
-      --card:#ffffff;
-      --border:#e9ecf5;
+      --bg1:#edf5ff;
+      --bg2:#f7fff4;
+      --card: rgba(255,255,255,.86);
+      --card2: rgba(255,255,255,.94);
+      --border: rgba(148,163,184,.22);
       --text:#0f172a;
       --muted:#64748b;
-      --shadow:0 10px 25px rgba(15, 23, 42, .08);
-      --radius:18px;
+      --accent:#2563eb;
+      --accent2:#06b6d4;
+      --ok:#16a34a;
+      --shadow: 0 18px 45px rgba(15, 23, 42, .12);
+      --shadow2: 0 10px 25px rgba(15, 23, 42, .08);
+      --radius: 20px;
+      --radius2: 16px;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
       color:var(--text);
-      background:var(--bg);
+      min-height:100vh;
+
+      /* Nền nhẹ như app học */
+      background:
+        radial-gradient(1200px 600px at 15% 8%, rgba(37,99,235,.18), transparent 55%),
+        radial-gradient(900px 500px at 85% 12%, rgba(6,182,212,.16), transparent 55%),
+        radial-gradient(700px 420px at 70% 80%, rgba(34,197,94,.10), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
     }
 
+    /* họa tiết chấm nhẹ */
+    .bg-dots{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .22;
+      background-image: radial-gradient(rgba(15,23,42,.16) 1px, transparent 1px);
+      background-size: 18px 18px;
+      mix-blend-mode: multiply;
+    }
+
+    /* ===== Header ===== */
     header{
       position: sticky;
       top:0;
-      z-index:10;
-      background:rgba(246,247,251,.85);
+      z-index:20;
+      background: rgba(255,255,255,.72);
       backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--border);
-      padding:14px 16px;
-      display:flex;
-      align-items:center;
-      gap:10px;
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
     }
-    header .title{
-      font-size:18px;
-      font-weight:800;
-      letter-spacing:.2px;
-    }
-    header .hint{
-      color:var(--muted);
-      font-size:12px;
-      margin-left:8px;
-    }
-
-    .wrap{
-      display:grid;
-      grid-template-columns: 320px 1fr;
-      gap:16px;
-      padding:16px;
-      min-height: calc(100vh - 58px);
-    }
-
-    .sidebar{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      min-height: 520px;
-    }
-    .sidebar .side-head{
-      padding:12px 12px 8px 12px;
-      border-bottom:1px solid var(--border);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .search{
-      width:100%;
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:10px 12px;
-      font-size:13px;
-      outline:none;
-      background:#fbfcff;
-    }
-    .list{
-      padding:10px;
-      overflow:auto;
-      height: 100%;
-    }
-
-    .item{
-      width:100%;
-      text-align:left;
-      border:1px solid transparent;
-      background:#f7f9ff;
-      border-radius:16px;
-      padding:10px 12px;
-      cursor:pointer;
-      transition:.15s;
-      margin-bottom:10px;
-    }
-    .item:hover{transform: translateY(-1px); border-color: var(--border); background:#fff}
-    .item.active{border-color:#c7d2fe; background:#fff}
-    .item .t{font-weight:800; font-size:14px}
-    .item .d{color:var(--muted); font-size:12px; margin-top:2px}
-
-    .subrow{
-      display:flex;
-      gap:8px;
-      margin-top:8px;
-      flex-wrap:wrap;
-    }
-    .pill, .pillbtn{
-      font-size:12px;
-      padding:6px 10px;
-      border-radius: 999px;
-      border:1px solid var(--border);
-      background:#fff;
-      color:#111827;
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-    }
-    .pillbtn{
-      cursor:pointer;
-    }
-
-    .main{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
-      min-height: 520px;
-      display:flex;
-      flex-direction:column;
-    }
-    .main-top{
-      padding:12px 14px;
-      border-bottom:1px solid var(--border);
+    .head-inner{
+      max-width: 1240px;
+      margin: 0 auto;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:12px;
     }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width: 280px;
+    }
+    .brand img{
+      height:38px;
+      width:auto;
+      filter: drop-shadow(0 6px 10px rgba(15,23,42,.12));
+    }
+    .brand .t{
+      display:flex;
+      flex-direction:column;
+      line-height:1.15;
+    }
+    .brand .t b{font-size:16px; letter-spacing:.2px}
+    .brand .t span{font-size:12px; color:var(--muted)}
+    .right-hint{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .chip{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.78);
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size:12px;
+      color: #0f172a;
+      box-shadow: var(--shadow2);
+    }
+
+    /* ===== Layout ===== */
+    .wrap{
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 16px;
+      display:grid;
+      grid-template-columns: 350px 1fr;
+      gap: 16px;
+      min-height: calc(100vh - 74px);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===== Sidebar ===== */
+    .sidebar{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height: 560px;
+    }
+    .side-top{
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.55);
+    }
+    .search{
+      width:100%;
+      border: 1px solid rgba(148,163,184,.35);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 13px;
+      outline:none;
+      background: rgba(255,255,255,.90);
+    }
+    .side-meta{
+      margin-top:10px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .mini{
+      font-size:12px;
+      color: var(--muted);
+    }
+
+    .list{
+      padding: 12px;
+      overflow:auto;
+      height: 100%;
+    }
+
+    /* Group heading */
+    .group{
+      margin: 10px 2px 6px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .group .name{
+      font-size:12px;
+      font-weight: 900;
+      color:#0f172a;
+      letter-spacing:.15px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      text-transform: uppercase;
+    }
+    .badge{
+      font-size:11px;
+      color: var(--muted);
+      border: 1px solid rgba(148,163,184,.30);
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.70);
+    }
+    .divider{
+      height:1px;
+      background: rgba(148,163,184,.22);
+      margin: 8px 0 12px;
+    }
+
+    /* Item */
+    .item{
+      width:100%;
+      text-align:left;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,.80);
+      border-radius: 18px;
+      padding: 12px 12px;
+      cursor:pointer;
+      transition: .15s ease;
+      margin-bottom: 10px;
+      box-shadow: 0 6px 18px rgba(15,23,42,.06);
+      position: relative;
+      overflow:hidden;
+    }
+    .item:hover{
+      transform: translateY(-1px);
+      border-color: rgba(99,102,241,.25);
+      background: rgba(255,255,255,.94);
+    }
+    .item.active{
+      border-color: rgba(37,99,235,.40);
+      background: rgba(255,255,255,.96);
+      box-shadow: 0 12px 26px rgba(37,99,235,.12);
+    }
+
+    /* Icon nhỏ bên trái */
+    .row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .ico{
+      width:34px;
+      height:34px;
+      border-radius: 12px;
+      display:grid;
+      place-items:center;
+      border: 1px solid rgba(148,163,184,.25);
+      box-shadow: 0 10px 18px rgba(15,23,42,.08);
+      flex: 0 0 34px;
+      font-size: 18px;
+      background: linear-gradient(135deg, rgba(37,99,235,.14), rgba(6,182,212,.10));
+    }
+    .item .t{
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: .15px;
+    }
+    .item .d{
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    /* Dropdown parent */
+    .item.parent{
+      margin-bottom: 6px;
+    }
+    .chev{
+      margin-left:auto;
+      font-size: 14px;
+      color: var(--muted);
+      transform: rotate(0deg);
+      transition: .15s ease;
+    }
+    .item.parent.expanded .chev{ transform: rotate(180deg); }
+
+    .children{
+      margin: 0 0 10px 10px;
+      padding-left: 12px;
+      border-left: 2px dashed rgba(148,163,184,.35);
+      display:none;
+    }
+    .children.show{ display:block; }
+    .child{
+      margin-top: 8px;
+      border-radius: 16px;
+      padding: 10px 10px;
+    }
+    .child .ico{
+      width:30px;height:30px;border-radius: 11px;flex:0 0 30px;font-size:16px;
+      background: linear-gradient(135deg, rgba(34,197,94,.14), rgba(6,182,212,.10));
+    }
+
+    .side-foot{
+      border-top: 1px solid var(--border);
+      padding: 10px 12px;
+      background: rgba(255,255,255,.55);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .side-foot .small{
+      font-size:12px;
+      color: var(--muted);
+    }
+
+    /* ===== Main ===== */
+    .main{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      min-height: 560px;
+      display:flex;
+      flex-direction:column;
+      position:relative;
+    }
+    .main-top{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.55);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+    }
     .now{
-      font-weight:800;
-      font-size:14px;
+      font-weight: 950;
+      font-size: 14px;
     }
     .url{
-      color:var(--muted);
-      font-size:12px;
+      color: var(--muted);
+      font-size: 12px;
       overflow:hidden;
       text-overflow:ellipsis;
       white-space:nowrap;
-      max-width: 62ch;
+      max-width: 70ch;
+      margin-top:2px;
     }
+
+    .btns{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .btn{
+      border: 1px solid rgba(148,163,184,.30);
+      background: rgba(255,255,255,.86);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      text-decoration:none;
+      color: #0f172a;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      box-shadow: 0 8px 18px rgba(15,23,42,.08);
+      transition:.15s;
+      user-select:none;
+    }
+    .btn:hover{transform: translateY(-1px)}
+    .btn.primary{
+      border-color: rgba(37,99,235,.35);
+      background: linear-gradient(135deg, rgba(37,99,235,.14), rgba(6,182,212,.12));
+    }
+
     .stage{
       flex:1;
-      background: linear-gradient(135deg, #f0f5ff, #f6fff7);
-      padding:14px;
+      padding: 14px;
+      background:
+        radial-gradient(900px 420px at 50% 15%, rgba(255,255,255,.60), transparent 60%),
+        linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.10));
     }
+
+    .frame-wrap{
+      height:100%;
+      background: var(--card2);
+      border: 1px solid rgba(148,163,184,.20);
+      border-radius: 18px;
+      padding: 12px;
+      box-shadow: 0 14px 40px rgba(15,23,42,.10);
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* watermark logo nhẹ ở khung game */
+    .wm{
+      position:absolute;
+      top: 14px;
+      right: 14px;
+      opacity: .22;
+      width: 120px;
+      height:auto;
+      pointer-events:none;
+      filter: grayscale(10%);
+    }
+
     .empty{
       height:100%;
       display:grid;
       place-items:center;
-      color:var(--muted);
-      font-size:14px;
-      padding:30px;
       text-align:center;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 30px;
     }
+    .empty b{color:#0f172a}
+    .empty .sub{margin-top:8px; font-size:12px}
+
     iframe{
       width:100%;
-      height: calc(100vh - 58px - 16px - 16px - 52px - 28px);
-      min-height: 520px;
+      height: calc(100vh - 74px - 16px - 16px - 54px - 28px - 26px);
+      min-height: 540px;
       border:0;
-      border-radius: 16px;
+      border-radius: 14px;
       background:#fff;
     }
 
+    /* ===== Responsive ===== */
     @media (max-width: 980px){
-      .wrap{grid-template-columns:1fr}
-      iframe{height: 72vh}
+      .wrap{grid-template-columns: 1fr}
+      .brand .t span{display:none}
+      iframe{height: 72vh; min-height: 420px;}
     }
   </style>
 </head>
 
 <body>
+  <div class="bg-dots"></div>
+
   <header>
-    <div class="title">🎮 Thư viện 32 game — bấm chọn bài để chơi</div>
-    <div class="hint">Mẹo: bạn có thể gửi link mở đúng game bằng “?game=...”</div>
+    <div class="head-inner">
+      <div class="brand">
+        <img src="assets/logo-oodles-math.png" alt="OODLES MATH">
+        <div class="t">
+          <b>Thư viện game</b>
+          <span>Menu theo nhóm • Dropdown lesson • Link mở đúng game bằng “?game=”</span>
+        </div>
+      </div>
+
+      <div class="right-hint">
+        <div id="countChip" class="chip">📚 0 game</div>
+        <div class="chip">✨ Tip: Ctrl + F5 nếu vừa update</div>
+      </div>
+    </div>
   </header>
 
   <div class="wrap">
+    <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="side-head">
-        <input id="q" class="search" placeholder="Tìm lesson… (vd: 05, ordinal, animal…)" />
+      <div class="side-top">
+        <input id="q" class="search" placeholder="Tìm lesson… (vd: 05, Seeker B, animal…)" />
+        <div class="side-meta">
+          <div id="miniText" class="mini">Gõ để lọc nhanh</div>
+          <div class="chip" style="box-shadow:none;">🎮 Play</div>
+        </div>
       </div>
+
       <div id="gameList" class="list"></div>
+
+      <div class="side-foot">
+        <div class="small">OODLES MATH • GitHub Pages</div>
+        <a class="btn" href="https://github.com/AbelHoangLoc/Abel_math_games" target="_blank" rel="noopener">🧩 Repo</a>
+      </div>
     </aside>
 
+    <!-- Main -->
     <main class="main">
       <div class="main-top">
         <div>
           <div id="nowTitle" class="now">Chưa chọn game</div>
           <div id="nowUrl" class="url"></div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <a id="openBtn" class="pill" href="#" target="_blank" rel="noopener" style="display:none;">↗ Open</a>
-          <button id="copyBtn" class="pillbtn" style="display:none;">📋 Copy link</button>
+
+        <div class="btns">
+          <a id="openBtn" class="btn primary" href="#" target="_blank" rel="noopener" style="display:none;">↗ Open</a>
+          <button id="copyBtn" class="btn" style="display:none;">📋 Copy link</button>
         </div>
       </div>
 
       <div class="stage">
-        <div id="emptyState" class="empty">
-          Chọn 1 lesson ở menu bên trái để bắt đầu chơi 🎯<br/>
-          (Nếu Lesson có nhiều game, bạn sẽ thấy Game A/B)
+        <div class="frame-wrap">
+          <img class="wm" src="assets/logo-oodles-math.png" alt="">
+          <div id="emptyState" class="empty">
+            <div>
+              <b>Chọn 1 lesson ở menu bên trái</b> để bắt đầu chơi 🎯
+              <div class="sub">Lesson 05 có dropdown để chọn Game A / Game B</div>
+            </div>
+          </div>
+          <iframe id="gameFrame" title="Math Game" style="display:none;"></iframe>
         </div>
-        <iframe id="gameFrame" title="Math Game" style="display:none;"></iframe>
       </div>
     </main>
   </div>
 
   <script>
-    // ====== CONFIG: Danh sách game ======
-    // Quy ước:
-    // - id dùng cho ?game=
-    // - url là đường dẫn folder (có / cuối)
-    // - title/desc hiển thị menu
-    const games = [
-      { id:"lesson-01", title:"Lesson 01 – Game", desc:"Seeker B • Lesson 01", url:"lesson-01/" },
-      { id:"lesson-02", title:"Lesson 02 – Game", desc:"Seeker B • Lesson 02", url:"lesson-02/" },
-      { id:"lesson-03", title:"Lesson 03 – Game", desc:"Seeker B • Lesson 03", url:"lesson-03/" },
-      { id:"lesson-04", title:"Lesson 04 – Game", desc:"Seeker B • Lesson 04", url:"lesson-04/" },
+    /* ========= CONFIG =========
+      - Group: Seeker A / Seeker B / Thinking Math
+      - Dropdown: Lesson 05 (A/B)
+      - Icon từng lesson: emoji
+      - url: thư mục con, ví dụ "lesson-01/"
+    */
 
-      // ✅ Lesson 05 có 2 game:
-      { id:"lesson-05-a", title:"Lesson 05 – Game A", desc:"Seeker B • Lesson 05", url:"lesson-05-game-1/" },
-      { id:"lesson-05-b", title:"Lesson 05 – Game B", desc:"Seeker B • Lesson 05", url:"lesson-05-game-2/" },
+    const groups = [
+      {
+        id: "seeker-b",
+        name: "Seeker B",
+        icon: "🟦",
+        items: [
+          { id:"lesson-01", title:"Lesson 01", desc:"Seeker B • Lesson 01", icon:"🐸", url:"lesson-01/" },
+          { id:"lesson-02", title:"Lesson 02", desc:"Seeker B • Lesson 02", icon:"🐼", url:"lesson-02/" },
+          { id:"lesson-03", title:"Lesson 03", desc:"Seeker B • Lesson 03", icon:"🦊", url:"lesson-03/" },
+          { id:"lesson-04", title:"Lesson 04", desc:"Seeker B • Lesson 04", icon:"🍒", url:"lesson-04/" },
 
-      { id:"lesson-06", title:"Lesson 06 – Game", desc:"Seeker B • Lesson 06", url:"lesson-06/" },
-      { id:"lesson-07", title:"Lesson 07 – Game", desc:"Seeker B • Lesson 07", url:"lesson-07/" },
-      { id:"lesson-08", title:"Lesson 08 – Game", desc:"Seeker B • Lesson 08", url:"lesson-08/" },
-      { id:"lesson-09", title:"Lesson 09 – Game", desc:"Seeker B • Lesson 09", url:"lesson-09/" },
-      { id:"lesson-10", title:"Lesson 10 – Game", desc:"Seeker B • Lesson 10", url:"lesson-10/" },
-      { id:"lesson-11", title:"Lesson 11 – Game", desc:"Seeker B • Lesson 11", url:"lesson-11/" },
-      { id:"lesson-12", title:"Lesson 12 – Game", desc:"Seeker B • Lesson 12", url:"lesson-12/" },
-      { id:"lesson-13", title:"Lesson 13 – Game", desc:"Seeker B • Lesson 13", url:"lesson-13/" },
-      { id:"lesson-14", title:"Lesson 14 – Game", desc:"Seeker B • Lesson 14", url:"lesson-14/" },
-      { id:"lesson-15", title:"Lesson 15 – Game", desc:"Seeker B • Lesson 15", url:"lesson-15/" },
-      { id:"lesson-16", title:"Lesson 16 – Game", desc:"Seeker B • Lesson 16", url:"lesson-16/" },
-      { id:"lesson-17", title:"Lesson 17 – Game", desc:"Seeker B • Lesson 17", url:"lesson-17/" },
-      { id:"lesson-18", title:"Lesson 18 – Game", desc:"Seeker B • Lesson 18", url:"lesson-18/" },
-      { id:"lesson-19", title:"Lesson 19 – Game", desc:"Seeker B • Lesson 19", url:"lesson-19/" },
-      { id:"lesson-20", title:"Lesson 20 – Game", desc:"Seeker B • Lesson 20", url:"lesson-20/" },
-      { id:"lesson-21", title:"Lesson 21 – Game", desc:"Seeker B • Lesson 21", url:"lesson-21/" },
-      { id:"lesson-22", title:"Lesson 22 – Game", desc:"Seeker B • Lesson 22", url:"lesson-22/" },
-      { id:"lesson-23", title:"Lesson 23 – Game", desc:"Seeker B • Lesson 23", url:"lesson-23/" },
-      { id:"lesson-24", title:"Lesson 24 – Game", desc:"Seeker B • Lesson 24", url:"lesson-24/" },
-      { id:"lesson-25", title:"Lesson 25 – Game", desc:"Seeker B • Lesson 25", url:"lesson-25/" },
-      { id:"lesson-26", title:"Lesson 26 – Game", desc:"Seeker B • Lesson 26", url:"lesson-26/" },
-      { id:"lesson-27", title:"Lesson 27 – Game", desc:"Seeker B • Lesson 27", url:"lesson-27/" },
-      { id:"lesson-28", title:"Lesson 28 – Game", desc:"Seeker B • Lesson 28", url:"lesson-28/" },
-      { id:"lesson-29", title:"Lesson 29 – Game", desc:"Seeker B • Lesson 29", url:"lesson-29/" },
-      { id:"lesson-30", title:"Lesson 30 – Game", desc:"Seeker B • Lesson 30", url:"lesson-30/" },
-      { id:"lesson-31", title:"Lesson 31 – Game", desc:"Seeker B • Lesson 31", url:"lesson-31/" },
-      { id:"lesson-32", title:"Lesson 32 – Game", desc:"Seeker B • Lesson 32", url:"lesson-32/" },
+          // ✅ Dropdown Lesson 05
+          {
+            id:"lesson-05",
+            title:"Lesson 05",
+            desc:"Seeker B • Lesson 05 (2 game)",
+            icon:"🎯",
+            children: [
+              { id:"lesson-05-a", title:"Lesson 05 – Game A", desc:"Seeker B • Lesson 05", icon:"🅰️", url:"lesson-05-game-1/" },
+              { id:"lesson-05-b", title:"Lesson 05 – Game B", desc:"Seeker B • Lesson 05", icon:"🅱️", url:"lesson-05-game-2/" },
+            ]
+          },
+
+          { id:"lesson-06", title:"Lesson 06", desc:"Seeker B • Lesson 06", icon:"🧩", url:"lesson-06/" },
+          { id:"lesson-07", title:"Lesson 07", desc:"Seeker B • Lesson 07", icon:"🐱", url:"lesson-07/" },
+          { id:"lesson-08", title:"Lesson 08", desc:"Seeker B • Lesson 08", icon:"🦁", url:"lesson-08/" },
+          { id:"lesson-09", title:"Lesson 09", desc:"Seeker B • Lesson 09", icon:"🦄", url:"lesson-09/" },
+          { id:"lesson-10", title:"Lesson 10", desc:"Seeker B • Lesson 10", icon:"🎈", url:"lesson-10/" },
+          { id:"lesson-11", title:"Lesson 11", desc:"Seeker B • Lesson 11", icon:"🚀", url:"lesson-11/" },
+          { id:"lesson-12", title:"Lesson 12", desc:"Seeker B • Lesson 12", icon:"🍓", url:"lesson-12/" },
+          { id:"lesson-13", title:"Lesson 13", desc:"Seeker B • Lesson 13", icon:"🍉", url:"lesson-13/" },
+          { id:"lesson-14", title:"Lesson 14", desc:"Seeker B • Lesson 14", icon:"🍇", url:"lesson-14/" },
+          { id:"lesson-15", title:"Lesson 15", desc:"Seeker B • Lesson 15", icon:"🎲", url:"lesson-15/" },
+          { id:"lesson-16", title:"Lesson 16", desc:"Seeker B • Lesson 16", icon:"🧠", url:"lesson-16/" },
+        ]
+      },
+
+      /* Bạn chưa có Seeker A/Thinking Math thì để trống, sau này thêm item vào là tự hiện */
+      {
+        id: "seeker-a",
+        name: "Seeker A",
+        icon: "🟩",
+        items: [
+          // ví dụ:
+          // { id:"sa-01", title:"Lesson 01", desc:"Seeker A • Lesson 01", icon:"🐰", url:"seeker-a/lesson-01/" },
+        ]
+      },
+      {
+        id: "thinking-math",
+        name: "Thinking Math",
+        icon: "🟪",
+        items: [
+          // ví dụ:
+          // { id:"tm-01", title:"Skill 01", desc:"Thinking Math • Skill 01", icon:"🧮", url:"thinking-math/skill-01/" },
+        ]
+      }
     ];
 
-    // ====== Helpers ======
+    // ====== Elements ======
     const listEl = document.getElementById("gameList");
     const frame = document.getElementById("gameFrame");
     const empty = document.getElementById("emptyState");
@@ -276,38 +557,62 @@
     const openBtn = document.getElementById("openBtn");
     const copyBtn = document.getElementById("copyBtn");
     const search = document.getElementById("q");
+    const countChip = document.getElementById("countChip");
+    const miniText = document.getElementById("miniText");
 
     const base = location.origin + location.pathname.replace(/index\.html$/,"");
 
-    function fullLink(gameId){
-      return base + `?game=${encodeURIComponent(gameId)}`;
-    }
-    function directLink(url){
-      return base + url;
+    const flatten = () => {
+      const out = [];
+      groups.forEach(g => {
+        g.items.forEach(it => {
+          if(it.children){
+            it.children.forEach(ch => out.push({ ...ch, group:g.name }));
+          } else {
+            out.push({ ...it, group:g.name });
+          }
+        });
+      });
+      return out;
+    };
+
+    const allGames = flatten();
+    countChip.textContent = `📚 ${allGames.length} game`;
+
+    function directLink(url){ return base + url; }
+    function openLink(gameId){ return base + `?game=${encodeURIComponent(gameId)}`; }
+
+    function setActive(id){
+      document.querySelectorAll(".item,.child").forEach(x => x.classList.remove("active"));
+      const target = document.querySelector(`[data-id="${id}"]`);
+      if(target) target.classList.add("active");
     }
 
-    function selectGame(g){
-      // UI active
-      document.querySelectorAll(".item").forEach(x => x.classList.remove("active"));
-      const btn = document.querySelector(`[data-id="${g.id}"]`);
-      if(btn) btn.classList.add("active");
+    function ensureParentExpanded(childId){
+      const parent = document.querySelector(`[data-child="${childId}"]`);
+      if(parent){
+        const childrenBox = parent.nextElementSibling;
+        if(childrenBox && childrenBox.classList.contains("children")){
+          childrenBox.classList.add("show");
+          parent.classList.add("expanded");
+        }
+      }
+    }
 
-      // Show iframe
+    function selectGame(game){
       empty.style.display = "none";
       frame.style.display = "block";
-      frame.src = g.url;
+      frame.src = game.url;
 
-      // Top info
-      nowTitle.textContent = g.title;
-      nowUrl.textContent = directLink(g.url);
+      nowTitle.textContent = `${game.title}`;
+      nowUrl.textContent = directLink(game.url);
 
-      // Buttons
       openBtn.style.display = "inline-flex";
-      openBtn.href = directLink(g.url);
+      openBtn.href = directLink(game.url);
 
       copyBtn.style.display = "inline-flex";
       copyBtn.onclick = async () => {
-        const link = fullLink(g.id);
+        const link = openLink(game.id);
         try{
           await navigator.clipboard.writeText(link);
           copyBtn.textContent = "✅ Copied";
@@ -317,43 +622,147 @@
         }
       };
 
-      // Update URL with ?game=
+      // update URL param
       const u = new URL(location.href);
-      u.searchParams.set("game", g.id);
+      u.searchParams.set("game", game.id);
       history.replaceState(null,"",u.toString());
+
+      ensureParentExpanded(game.id);
+      setActive(game.id);
     }
 
-    function render(list){
+    function render(filterText=""){
+      const q = filterText.trim().toLowerCase();
+
       listEl.innerHTML = "";
-      list.forEach(g => {
-        const card = document.createElement("button");
-        card.className = "item";
-        card.setAttribute("data-id", g.id);
-        card.innerHTML = `<div class="t">${g.title}</div><div class="d">${g.desc}</div>`;
-        card.onclick = () => selectGame(g);
-        listEl.appendChild(card);
+      let shownCount = 0;
+
+      groups.forEach(group => {
+        // lọc items theo search
+        const items = group.items.filter(it => {
+          if(!q) return true;
+
+          if(it.children){
+            // match parent OR any child
+            const parentText = `${it.title} ${it.desc} ${it.id}`.toLowerCase();
+            const anyChild = it.children.some(ch =>
+              (`${ch.title} ${ch.desc} ${ch.id} ${ch.url}`).toLowerCase().includes(q)
+            );
+            return parentText.includes(q) || anyChild;
+          }
+
+          return (`${it.title} ${it.desc} ${it.id} ${it.url}`).toLowerCase().includes(q);
+        });
+
+        if(items.length === 0) return;
+
+        // group header
+        const head = document.createElement("div");
+        head.className = "group";
+        const totalInGroup = group.items.reduce((acc,it)=> acc + (it.children ? it.children.length : 1), 0);
+        head.innerHTML = `
+          <div class="name">${group.icon} ${group.name}</div>
+          <div class="badge">${totalInGroup} game</div>
+        `;
+        listEl.appendChild(head);
+        listEl.appendChild(Object.assign(document.createElement("div"), { className:"divider" }));
+
+        items.forEach(it => {
+          if(it.children){
+            // Parent row
+            const parentBtn = document.createElement("button");
+            parentBtn.className = "item parent";
+            parentBtn.setAttribute("data-child", it.children[0].id); // giúp auto mở dropdown khi mở game con
+            parentBtn.innerHTML = `
+              <div class="row">
+                <div class="ico">${it.icon || "📚"}</div>
+                <div style="min-width:0">
+                  <div class="t">${it.title} <span style="color:var(--muted);font-weight:800">• Dropdown</span></div>
+                  <div class="d">${it.desc}</div>
+                </div>
+                <div class="chev">▾</div>
+              </div>
+            `;
+            listEl.appendChild(parentBtn);
+
+            // Children container
+            const childrenBox = document.createElement("div");
+            childrenBox.className = "children";
+            it.children.forEach(ch => {
+              // hide child if search doesn't match
+              if(q){
+                const txt = (`${ch.title} ${ch.desc} ${ch.id} ${ch.url}`).toLowerCase();
+                if(!txt.includes(q)) return;
+              }
+
+              const childBtn = document.createElement("button");
+              childBtn.className = "item child";
+              childBtn.setAttribute("data-id", ch.id);
+              childBtn.innerHTML = `
+                <div class="row">
+                  <div class="ico">${ch.icon || "🎮"}</div>
+                  <div style="min-width:0">
+                    <div class="t">${ch.title}</div>
+                    <div class="d">${ch.desc}</div>
+                  </div>
+                </div>
+              `;
+              childBtn.onclick = () => selectGame(ch);
+              childrenBox.appendChild(childBtn);
+              shownCount++;
+            });
+
+            listEl.appendChild(childrenBox);
+
+            // Toggle dropdown
+            parentBtn.onclick = () => {
+              const isOpen = childrenBox.classList.contains("show");
+              document.querySelectorAll(".children").forEach(box => box.classList.remove("show"));
+              document.querySelectorAll(".item.parent").forEach(b => b.classList.remove("expanded"));
+
+              if(!isOpen){
+                childrenBox.classList.add("show");
+                parentBtn.classList.add("expanded");
+              }
+            };
+
+          } else {
+            const btn = document.createElement("button");
+            btn.className = "item";
+            btn.setAttribute("data-id", it.id);
+            btn.innerHTML = `
+              <div class="row">
+                <div class="ico">${it.icon || "🎮"}</div>
+                <div style="min-width:0">
+                  <div class="t">${it.title}</div>
+                  <div class="d">${it.desc}</div>
+                </div>
+              </div>
+            `;
+            btn.onclick = () => selectGame(it);
+            listEl.appendChild(btn);
+            shownCount++;
+          }
+        });
       });
+
+      miniText.textContent = q ? `Đang hiển thị ${shownCount} mục theo từ khóa` : "Gõ để lọc nhanh";
     }
 
     // Search
-    search.addEventListener("input", () => {
-      const q = search.value.trim().toLowerCase();
-      if(!q){ render(games); return; }
-      const filtered = games.filter(g =>
-        (g.title + " " + g.desc + " " + g.id + " " + g.url).toLowerCase().includes(q)
-      );
-      render(filtered);
-    });
+    search.addEventListener("input", () => render(search.value));
 
-    // Initial render
-    render(games);
+    // Init
+    render("");
 
     // Auto open by ?game=
     const params = new URLSearchParams(location.search);
     const gid = params.get("game");
     if(gid){
-      const found = games.find(x => x.id === gid);
-      if(found) selectGame(found);
+      const found = allGames.find(x => x.id === gid);
+      if(found){
+        selectGame(found);
+      }
     }
   </script>
 </body>
