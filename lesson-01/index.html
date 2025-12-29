@@ -1,663 +1,666 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Animal Addition Adventure</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-        body {
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pop the Greater Number</title>
+    <style>
+        :root {
+            --bg-sky: #87CEEB;
+            --font-main: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            
+            /* Brighter, Yummy Colors */
+            --c-red: #FF6B6B;
+            --c-blue: #4ECDC4;
+            --c-green: #95E1D3;
+            --c-yellow: #FFE66D;
+            --c-orange: #FFA500;
+            --c-purple: #C39BD3;
+            --c-white: #FFFFFF;
+        }
+
+        * {
             box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-sky);
+            /* Cute cloud background pattern */
+            background-image: 
+                radial-gradient(circle at 50% 50%, white 10px, transparent 11px),
+                radial-gradient(circle at 10% 20%, rgba(255,255,255,0.6) 20px, transparent 21px),
+                radial-gradient(circle at 90% 80%, rgba(255,255,255,0.6) 30px, transparent 31px);
+            background-size: 100px 100px, 200px 200px, 300px 300px;
             margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #FFE5F1, #E5F3FF, #F0FFE5);
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            min-height: 100vh;
-        }
-        .game-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-        .title {
-            text-align: center;
-            font-size: 2.2em;
-            color: #FF6B9D;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        .progress-bar {
-            width: 100%;
-            height: 15px;
-            background: #E0E0E0;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #FF6B9D, #4ECDC4);
-            border-radius: 10px;
-            transition: width 0.5s ease;
-        }
-        .question-area {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .question-text {
-            font-size: 1.8em;
-            color: #333;
-            margin-bottom: 20px;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-        .animals-display {
-            font-size: 3em;
-            margin: 20px 0;
-            min-height: 80px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: nowrap;
-            gap: 15px;
-        }
-        .plus-sign {
-            font-size: 4em;
-            color: #FF6B9D;
-            margin: 0 15px;
-            font-weight: bold;
-        }
-        .number-bonds {
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 20px 0;
-            gap: 15px;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
-        .bonds-top {
-            display: flex;
-            gap: 40px;
-            align-items: center;
-        }
-        .bond-connector {
-            width: 3px;
-            height: 30px;
-            background: #FF6B9D;
-        }
-        .bond-circle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-            font-weight: bold;
-            color: white;
-        }
-        .part-circle {
-            background: #4ECDC4;
-        }
-        .whole-circle {
-            background: #FF6B9D;
-            width: 80px;
-            height: 80px;
-            font-size: 2em;
-        }
-        .answer-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin: 25px 0;
-        }
-        .answer-btn, .action-btn {
-            padding: 15px 25px;
-            font-size: 1.5em;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            min-width: 80px;
-        }
-        .answer-btn {
-            background: linear-gradient(135deg, #FFE066, #FF9A56);
-            color: #333;
-        }
-        .answer-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .action-btn {
-            background: linear-gradient(135deg, #4ECDC4, #44A08D);
-            color: white;
-            margin: 10px;
-        }
-        .action-btn:hover {
-            transform: scale(1.05);
-        }
-        .feedback {
-            font-size: 1.4em;
-            font-weight: bold;
-            margin: 15px 0;
-            min-height: 30px;
-        }
-        .correct { color: #4CAF50; }
-        .incorrect { color: #FF5722; }
 
-        .celebration {
-            text-align: center;
-            animation: bounce 1s infinite;
+        /* --- Header --- */
+        header {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 25px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+
+        .title-group h1 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .hidden { display: none; }
-        .listen-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1em;
-            margin-left: 5px;
-            padding: 5px;
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 5px;
+        }
+
+        .speaker-btn {
+            background: var(--c-yellow);
+            border: 3px solid #F1C40F;
             border-radius: 50%;
-            transition: transform 0.2s ease;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
         }
-        .listen-btn:hover {
-            transform: scale(1.2);
+
+        .speaker-btn:active { transform: scale(0.9); }
+
+        .score-board {
+            background: var(--c-blue);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #2A9D8F;
+        }
+
+        /* --- Game Area --- */
+        #game-area {
+            width: 100%;
+            max-width: 900px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .question-label {
+            font-size: 2rem;
+            color: white;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.2);
+            padding: 5px 20px;
+            border-radius: 20px;
+        }
+
+        .balloons-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; /* Align bottom to make strings look grounded */
+            gap: 60px;
+            min-height: 350px;
+            padding-bottom: 20px;
+        }
+
+        /* --- Balloons --- */
+        .balloon-container {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
-        /* Styles for Shell Game */
-        .mystery-box {
-            position: fixed;
+        .balloon-container:hover { transform: translateY(-5px); }
+        .balloon-container:active { transform: scale(0.95); }
+
+        .balloon {
+            width: 130px;
+            height: 160px;
+            background: var(--c-red);
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.1), 5px 10px 10px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+
+        /* Shine reflection */
+        .balloon::after {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 30px;
+            width: 25px;
+            height: 45px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            transform: rotate(20deg);
+        }
+
+        .string {
+            width: 4px;
+            height: 100px;
+            background: #fff;
+            margin-top: -5px;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.1));
+        }
+
+        /* --- Colors --- */
+        .b-red { background-color: var(--c-red); }
+        .b-blue { background-color: var(--c-blue); }
+        .b-green { background-color: var(--c-green); }
+        .b-yellow { background-color: var(--c-yellow); color: #665; }
+        .b-orange { background-color: var(--c-orange); }
+        .b-purple { background-color: var(--c-purple); }
+
+        /* --- Animations & Feedback --- */
+        
+        /* POP Animation */
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        .popped .balloon { animation: pop 0.3s forwards ease-in; }
+        .popped .string { opacity: 0; transition: 0.3s; }
+
+        /* Shake Animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-5deg); }
+            75% { transform: translateX(10px) rotate(5deg); }
+        }
+        .shake .balloon { animation: shake 0.4s ease-in-out; }
+
+        /* Stars Effect (Correct) */
+        .star-effect {
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            font-size: 5rem;
+            color: #FFD700;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .popped .star-effect { animation: starBurst 0.6s ease-out forwards; }
+        @keyframes starBurst {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2) rotate(20deg); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5) rotate(45deg); }
+        }
+
+        /* Try Again Text (Incorrect) */
+        .try-again {
+            position: absolute;
+            top: -40px;
+            width: 150%;
+            left: -25%;
+            text-align: center;
+            background: #fff;
+            color: var(--c-red);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .shake .try-again { animation: floatUp 1s ease-out; }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(-20px); }
+            100% { opacity: 0; transform: translateY(-30px); }
+        }
+
+        /* --- Mystery Box Section --- */
+        #mystery-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            animation: fadeIn 0.5s;
+        }
+        
+        .mystery-title {
+            font-size: 2rem;
+            color: white;
+            text-shadow: 2px 2px 0 #333;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .boxes-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .mystery-box {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(to bottom, #FF9A9E 0%, #FECFEF 100%);
+            border-radius: 15px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        
+        .mystery-box:hover { transform: translateY(-5px) scale(1.05); }
+
+        .lid {
+            position: absolute;
+            top: -10px;
+            left: -5px;
+            width: 130px;
+            height: 35px;
+            background: #FF6B6B;
+            border-radius: 8px;
+            z-index: 5;
+            transition: 0.5s;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+        /* Bow */
+        .lid::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: -15px;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 20px;
+            background: #FFD700;
+            border-radius: 5px;
+        }
+
+        .prize {
+            font-size: 3.5rem;
+            position: absolute;
+            bottom: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: 0.5s;
+        }
+
+        .mystery-box.opened .lid { transform: translateY(-50px) rotate(-15deg); opacity: 0; }
+        .mystery-box.opened .prize { opacity: 1; transform: translateY(-10px) scale(1.2); }
+
+        /* --- Victory Modal --- */
+        #victory-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
             background: white;
             padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-radius: 30px;
             text-align: center;
-            z-index: 1000;
-            animation: popIn 0.5s ease;
-            width: 90%;
-            max-width: 500px;
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 90%;
         }
-        .mystery-box h3 {
-            color: #FF6B9D;
-            margin-bottom: 20px;
-            font-size: 1.8em;
+
+        @keyframes bounceIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
-        /* Container needs relative positioning for absolute children */
-        .mystery-gifts-container {
-            position: relative;
-            height: 120px; /* Space for the boxes */
-            width: 100%;
-            margin: 20px 0;
-            display: flex;
-            justify-content: center;
-        }
-        .mystery-gift {
-            position: absolute; /* Absolute for animation */
-            font-size: 3.5em;
+
+        .modal-content h2 { font-size: 2.5rem; color: var(--c-purple); margin: 0 0 10px 0; }
+        .modal-content p { font-size: 1.2rem; color: #555; }
+        
+        button.restart-btn {
+            background: var(--c-blue);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.3rem;
+            border-radius: 50px;
             cursor: pointer;
-            width: 80px;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 15px;
-            background: rgba(255, 107, 157, 0.1);
-            /* Updated transition to include 'left' for smooth shuffling */
-            transition: left 0.6s ease-in-out, background 0.2s; 
-            user-select: none;
+            margin-top: 20px;
+            font-family: inherit;
+            box-shadow: 0 4px 0 #2A9D8F;
         }
-        .mystery-gift:hover {
-            background: rgba(255, 107, 157, 0.3);
-        }
-        .mystery-gift.disabled {
-            cursor: default;
-            pointer-events: none;
-        }
-        .mystery-message {
-            min-height: 1.5em;
-            font-size: 1.2em;
-            color: #555;
-            margin-top: 10px;
+        button.restart-btn:hover { transform: translateY(-2px); }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .balloon { width: 100px; height: 120px; font-size: 3rem; }
+            .balloons-wrapper { gap: 30px; }
+            h1 { font-size: 1.2rem; }
+            .mystery-box { width: 90px; height: 90px; }
+            .lid { width: 100px; }
         }
 
-        @keyframes popIn {
-            0% { transform: translate(-50%, -50%) scale(0); }
-            100% { transform: translate(-50%, -50%) scale(1); }
-        }
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-        }
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; }
     </style>
- </head>
- <body>
-  <div class="game-container">
-   <h1 class="title" id="gameTitle">Animal Addition Adventure!</h1>
-   <div class="progress-bar">
-    <div class="progress-fill" id="progressFill"></div>
-   </div>
-   <div id="gameScreen">
-    <div class="question-area">
-     <div class="question-text" id="questionText"></div>
-     <div class="animals-display" id="animalsDisplay"></div>
-     <div class="number-bonds hidden" id="numberBonds"></div>
-     <div class="answer-buttons" id="answerButtons"></div>
-     <div class="feedback" id="feedback"></div>
+</head>
+<body>
+
+    <header>
+        <div class="title-group">
+            <h1>Pop the Greater Number</h1>
+            <div class="controls">
+                <div style="color: #555; font-size: 1rem;">Click the bigger number!</div>
+                <button class="speaker-btn" onclick="speakQuestion()" title="Read Question">🔊</button>
+            </div>
+        </div>
+        <div class="score-board">Score: <span id="score">0</span> / 6</div>
+    </header>
+
+    <div id="game-area">
+        <!-- Question Section -->
+        <div id="question-wrapper" style="width: 100%; text-align: center;">
+            <div class="question-label" id="q-label">Question 1</div>
+            <div class="balloons-wrapper" id="balloons-wrapper">
+                <!-- Balloons injected here -->
+            </div>
+        </div>
+
+        <!-- Mystery Box Section -->
+        <div id="mystery-area">
+            <div class="mystery-title">Correct! Pick a Mystery Box! 🎁</div>
+            <div class="boxes-container" id="boxes-container">
+                <!-- Boxes injected here -->
+            </div>
+        </div>
     </div>
-   </div>
-   <div id="overlay" class="overlay hidden"></div>
-   
-   <div id="mysteryBox" class="mystery-box hidden">
-    <h3 id="mysteryTitle">Find the Trophy! 🏆</h3>
-    <div class="mystery-gifts-container" id="mysteryGiftsContainer">
-        <!-- Boxes will be injected here via JS -->
+
+    <!-- Victory Modal -->
+    <div id="victory-modal">
+        <div class="modal-content">
+            <h2>You are a Star! 🌟</h2>
+            <p>You answered all questions correctly!</p>
+            <button class="restart-btn" onclick="location.reload()">Play Again</button>
+        </div>
     </div>
-    <div id="mysteryResult" class="mystery-message">Watch closely...</div>
-   </div>
 
-   <div id="celebrationScreen" class="celebration hidden">
-    <h2>You are an Animal Addition Superstar!</h2>
-    <div style="font-size: 3em; margin: 20px 0;">
-     🐶💃🐱🕺🐘💃🐸🕺
-    </div><button class="action-btn" id="playAgainBtn">Play Again!</button>
-   </div>
-  </div>
-  <script>
-        const animals = ['🐶', '🐱', '🐘', '🐸', '🦁', '🐰', '🐼', '🐯'];
-        const animalNames = ['dogs', 'cats', 'elephants', 'frogs', 'lions', 'rabbits', 'pandas', 'tigers'];
-        const WIN_ITEM = '🏆';
-        const LOSE_ITEM = '💨'; 
-        
-        let currentQuestion = 0;
-        let currentStep = 1;
-        let animal1, animal2, count1, count2, correctAnswer;
-        let currentSpeechText = "";
-        
-        // --- SHELL GAME VARIABLES ---
-        let boxes = []; 
-        const BOX_SPACING = 110; 
-        
-        let config = {
-            game_title: "Animal Addition Adventure!",
-            encouragement_text: "Fantastic! You got it right!"
-        };
+    <canvas id="confetti-canvas"></canvas>
 
-        const defaultConfig = {
-            game_title: "Animal Addition Adventure!",
-            encouragement_text: "Fantastic! You got it right!"
-        };
+    <script>
+        // ==========================================
+        // TEACHER AREA
+        // ==========================================
+        const gameData = [
+            { label: 'Question 1', left: 5,  right: 12 },
+            { label: 'Question 2', left: 18, right: 9  },
+            { label: 'Question 3', left: 3,  right: 7  },
+            { label: 'Question 4', left: 14, right: 11 },
+            { label: 'Question 5', left: 2,  right: 6  },
+            { label: 'Question 6', left: 10, right: 15 }
+        ];
 
-        // --- AUDIO SYSTEM (Cheerful Sounds) ---
+        // Colors for balloons
+        const colors = ['b-red', 'b-blue', 'b-green', 'b-yellow', 'b-orange', 'b-purple'];
+
+        let currentQIndex = 0;
+        let score = 0;
+        
+        // DOM Elements
+        const qWrapper = document.getElementById('question-wrapper');
+        const mysteryArea = document.getElementById('mystery-area');
+        const balloonsWrapper = document.getElementById('balloons-wrapper');
+        const boxesContainer = document.getElementById('boxes-container');
+        const qLabel = document.getElementById('q-label');
+        const scoreDisplay = document.getElementById('score');
+        const victoryModal = document.getElementById('victory-modal');
+
+        // --- AUDIO SYSTEM ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function playTone(freq, type, duration, startTime, volume = 0.2) {
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.value = freq;
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            
-            osc.start(startTime);
-            gain.gain.setValueAtTime(volume, startTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-            osc.stop(startTime + duration);
-        }
 
-        function playCheer() {
             const now = audioCtx.currentTime;
-            playTone(523.25, 'sine', 0.3, now);       // C5
-            playTone(659.25, 'sine', 0.3, now + 0.1); // E5
-            playTone(783.99, 'sine', 0.4, now + 0.2); // G5
-        }
 
-        function playCorrectMath() {
-            const now = audioCtx.currentTime;
-            playTone(523.25, 'triangle', 0.1, now, 0.1);
-            playTone(1046.50, 'sine', 0.4, now + 0.05, 0.3); // High C
-        }
-
-        function playWrong() {
-            const now = audioCtx.currentTime;
-            playTone(300, 'sawtooth', 0.3, now, 0.1);
-            playTone(200, 'sawtooth', 0.4, now + 0.2, 0.1);
-        }
-
-        function playShuffleSound() {
-            const now = audioCtx.currentTime;
-            playTone(400, 'square', 0.05, now, 0.05);
-        }
-
-        function playFanfare() {
-            const now = audioCtx.currentTime;
-            playTone(523.25, 'triangle', 0.2, now);       // C
-            playTone(659.25, 'triangle', 0.2, now + 0.15); // E
-            playTone(783.99, 'triangle', 0.2, now + 0.30); // G
-            playTone(1046.50, 'triangle', 0.8, now + 0.45); // High C
-        }
-
-        // --- GAME LOGIC ---
-
-        function startNewQuestion() {
-            currentStep = 1;
-            const indices = [];
-            while (indices.length < 2) {
-                const idx = Math.floor(Math.random() * animals.length);
-                if (!indices.includes(idx)) indices.push(idx);
-            }
-            animal1 = animals[indices[0]];
-            animal2 = animals[indices[1]];
-            
-            do {
-                count1 = Math.floor(Math.random() * 10) + 1;
-                count2 = Math.floor(Math.random() * 10) + 1;
-            } while (count1 + count2 > 20);
-
-            updateProgress();
-            showStep1();
-        }
-
-        function showStep1() {
-            currentSpeechText = `How many ${animalNames[animals.indexOf(animal1)]} do you see?`;
-            const questionHtml = `
-                <span>${currentSpeechText}</span>
-                <button class="listen-btn" onclick="speakQuestion()">🔊</button>
-            `;
-            document.getElementById('questionText').innerHTML = questionHtml;
-            document.getElementById('animalsDisplay').innerHTML = animal1.repeat(count1);
-            document.getElementById('numberBonds').classList.add('hidden');
-            correctAnswer = count1;
-            createAnswerButtons();
-        }
-
-        function showStep2() {
-            currentSpeechText = `How many ${animalNames[animals.indexOf(animal2)]} do you see?`;
-            const questionHtml = `
-                <span>${currentSpeechText}</span>
-                <button class="listen-btn" onclick="speakQuestion()">🔊</button>
-            `;
-            document.getElementById('questionText').innerHTML = questionHtml;
-            document.getElementById('animalsDisplay').innerHTML = animal2.repeat(count2);
-            correctAnswer = count2;
-            createAnswerButtons();
-        }
-
-        function showStep3() {
-            currentSpeechText = 'How many animals altogether?';
-            const questionHtml = `
-                <span>${currentSpeechText}</span>
-                <button class="listen-btn" onclick="speakQuestion()">🔊</button>
-            `;
-            document.getElementById('questionText').innerHTML = questionHtml;
-            document.getElementById('animalsDisplay').innerHTML = 
-                `${animal1.repeat(count1)}<span class="plus-sign">+</span>${animal2.repeat(count2)}`;
-            
-            const bondsHtml = `
-                <div class="bonds-top">
-                    <div class="bond-circle part-circle">${count1}</div>
-                    <div class="bond-circle part-circle">${count2}</div>
-                </div>
-                <div class="bond-connector"></div>
-                <div class="bond-circle whole-circle">?</div>
-            `;
-            document.getElementById('numberBonds').innerHTML = bondsHtml;
-            document.getElementById('numberBonds').classList.remove('hidden');
-            
-            correctAnswer = count1 + count2;
-            createAnswerButtons();
-        }
-
-        function createAnswerButtons() {
-            const buttons = [];
-            buttons.push(correctAnswer);
-            while (buttons.length < 3) {
-                let wrong = correctAnswer + Math.floor(Math.random() * 6) - 3;
-                if (wrong > 0 && wrong !== correctAnswer && !buttons.includes(wrong)) {
-                    buttons.push(wrong);
-                }
-            }
-            buttons.sort(() => Math.random() - 0.5);
-            
-            const container = document.getElementById('answerButtons');
-            container.innerHTML = '';
-            buttons.forEach(num => {
-                const btn = document.createElement('button');
-                btn.className = 'answer-btn';
-                btn.textContent = num;
-                btn.onclick = () => checkAnswer(num);
-                container.appendChild(btn);
-            });
-            document.getElementById('feedback').textContent = '';
-        }
-
-        function checkAnswer(selected) {
-            const feedback = document.getElementById('feedback');
-            if (selected === correctAnswer) {
-                playCorrectMath(); 
-                feedback.textContent = config.encouragement_text || defaultConfig.encouragement_text;
-                feedback.className = 'feedback correct';
-                
-                if (currentStep === 3) {
-                    document.querySelector('.whole-circle').textContent = correctAnswer;
-                }
-                
-                setTimeout(() => {
-                    if (currentStep < 3) {
-                        currentStep++;
-                        if (currentStep === 2) showStep2();
-                        else if (currentStep === 3) showStep3();
-                    } else {
-                        initMysteryGame(); 
-                    }
-                }, 1500);
-            } else {
-                playWrong();
-                feedback.textContent = 'Try again!';
-                feedback.className = 'feedback incorrect';
-            }
-        }
-
-        // --- MYSTERY BOX SHELL GAME LOGIC ---
-
-        function initMysteryGame() {
-            document.getElementById('overlay').classList.remove('hidden');
-            document.getElementById('mysteryBox').classList.remove('hidden');
-            document.getElementById('mysteryResult').textContent = "Watch carefully!";
-            document.getElementById('mysteryTitle').textContent = "Find the Trophy! 🏆";
-            
-            const container = document.getElementById('mysteryGiftsContainer');
-            container.innerHTML = '';
-            boxes = [];
-            
-            const trophyIndex = Math.floor(Math.random() * 3); 
-
-            for (let i = 0; i < 3; i++) {
-                const boxEl = document.createElement('div');
-                boxEl.className = 'mystery-gift disabled'; 
-                boxEl.textContent = '🎁';
-                
-                // Position logic
-                const offset = (i - 1) * BOX_SPACING;
-                boxEl.style.left = `calc(50% + ${offset}px - 40px)`; 
-                
-                container.appendChild(boxEl);
-                
-                boxes.push({
-                    id: i,
-                    currentPos: i, // 0=left, 1=center, 2=right
-                    hasTrophy: (i === trophyIndex),
-                    element: boxEl
+            if (type === 'pop') {
+                // High pitch pop
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'error') {
+                // Low buzz
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'win') {
+                // Magical chime
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    let o = audioCtx.createOscillator();
+                    let g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.type = 'triangle';
+                    o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.1, now + i*0.1);
+                    g.gain.linearRampToValueAtTime(0, now + i*0.1 + 0.4);
+                    o.start(now + i*0.1);
+                    o.stop(now + i*0.1 + 0.4);
                 });
             }
-
-            // 2. Reveal Phase
-            setTimeout(() => {
-                revealContents(true);
-                // 3. Hide and Start Shuffle after 1.5s
-                setTimeout(() => {
-                    revealContents(false);
-                    document.getElementById('mysteryResult').textContent = "Shuffling...";
-                    startShuffling(5); // 5 swaps
-                }, 1500);
-            }, 500);
-        }
-
-        function revealContents(show) {
-            boxes.forEach(box => {
-                if (show) {
-                    box.element.textContent = box.hasTrophy ? WIN_ITEM : '';
-                    if (!box.hasTrophy) box.element.style.background = 'rgba(0,0,0,0.05)';
-                } else {
-                    box.element.textContent = '🎁';
-                    box.element.style.background = 'rgba(255, 107, 157, 0.1)';
-                }
-            });
-            if(show && boxes.some(b => b.hasTrophy)) playCheer();
-        }
-
-        function startShuffling(swapsRemaining) {
-            if (swapsRemaining <= 0) {
-                // Done shuffling
-                enableSelection();
-                return;
-            }
-
-            // Pick 2 distinct random indices (positions 0, 1, 2) to swap
-            let posA = Math.floor(Math.random() * 3);
-            let posB = Math.floor(Math.random() * 3);
-            while (posA === posB) { posB = Math.floor(Math.random() * 3); }
-
-            // Find the box objects currently at these positions
-            let boxA = boxes.find(b => b.currentPos === posA);
-            let boxB = boxes.find(b => b.currentPos === posB);
-
-            // Swap their logical positions
-            boxA.currentPos = posB;
-            boxB.currentPos = posA;
-
-            // Update visual positions
-            const offsetA = (boxA.currentPos - 1) * BOX_SPACING;
-            const offsetB = (boxB.currentPos - 1) * BOX_SPACING;
-
-            playShuffleSound();
-            
-            boxA.element.style.left = `calc(50% + ${offsetA}px - 40px)`;
-            boxB.element.style.left = `calc(50% + ${offsetB}px - 40px)`;
-
-            // Wait for transition to finish before next swap
-            // Transition is 0.6s, so wait 0.7s
-            setTimeout(() => {
-                startShuffling(swapsRemaining - 1);
-            }, 700); 
-        }
-
-        function enableSelection() {
-            document.getElementById('mysteryResult').textContent = "Where is the trophy?";
-            boxes.forEach(box => {
-                box.element.classList.remove('disabled');
-                box.element.onclick = () => checkMysteryChoice(box);
-            });
-        }
-
-        function checkMysteryChoice(box) {
-            // Disable all to prevent double clicks
-            boxes.forEach(b => b.element.classList.add('disabled'));
-
-            if (box.hasTrophy) {
-                box.element.textContent = WIN_ITEM;
-                playFanfare();
-                document.getElementById('mysteryResult').textContent = "You found it! 🎉";
-                document.getElementById('mysteryTitle').textContent = "WINNER!";
-                
-                setTimeout(() => {
-                    closeMysteryBox(true);
-                }, 2000);
-            } else {
-                box.element.textContent = LOSE_ITEM;
-                playWrong();
-                document.getElementById('mysteryResult').textContent = "Oh no! Empty!";
-                
-                // Show where it actually was
-                setTimeout(() => {
-                    const actualBox = boxes.find(b => b.hasTrophy);
-                    actualBox.element.textContent = WIN_ITEM;
-                    actualBox.element.style.background = "#ffffaa";
-                    setTimeout(() => {
-                        closeMysteryBox(false); // Move on anyway
-                    }, 2000);
-                }, 800);
-            }
-        }
-
-        function closeMysteryBox(won) {
-            document.getElementById('overlay').classList.add('hidden');
-            document.getElementById('mysteryBox').classList.add('hidden');
-            nextQuestion();
-        }
-
-        function nextQuestion() {
-            currentQuestion++;
-            if (currentQuestion >= 5) {
-                showCelebration();
-            } else {
-                document.getElementById('gameScreen').classList.remove('hidden');
-                startNewQuestion();
-            }
-        }
-
-        function showCelebration() {
-            playCheer();
-            document.getElementById('celebrationScreen').classList.remove('hidden');
-        }
-
-        function restartGame() {
-            currentQuestion = 0;
-            document.getElementById('celebrationScreen').classList.add('hidden');
-            document.getElementById('gameScreen').classList.remove('hidden');
-            startNewQuestion();
-        }
-
-        function updateProgress() {
-            const progress = (currentQuestion / 5) * 100;
-            document.getElementById('progressFill').style.width = progress + '%';
         }
 
         function speakQuestion() {
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(currentSpeechText);
-                utterance.rate = 0.8;
-                utterance.pitch = 1.2;
-                window.speechSynthesis.speak(utterance);
-            }
+            window.speechSynthesis.cancel();
+            const item = gameData[currentQIndex];
+            if (!item) return;
+
+            const text = `Which number is bigger? ${item.left}, or ${item.right}?`;
+            const ut = new SpeechSynthesisUtterance(text);
+            ut.lang = 'en-US';
+            ut.rate = 0.9;
+            window.speechSynthesis.speak(ut);
         }
-        document.getElementById('playAgainBtn').onclick = restartGame;
 
-        document.body.addEventListener('click', function() {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
+        // --- GAME LOGIC ---
+        function initGame() {
+            showQuestion(0);
+        }
+
+        function showQuestion(index) {
+            if (index >= gameData.length) {
+                endGame();
+                return;
             }
-        }, {once:true});
 
-        startNewQuestion();
+            // Reset UI
+            qWrapper.style.display = 'block';
+            mysteryArea.style.display = 'none';
+            balloonsWrapper.innerHTML = '';
+            
+            // IMPORTANT FIX: Re-enable clicking on the wrapper
+            balloonsWrapper.style.pointerEvents = 'auto';
+
+            const item = gameData[index];
+            qLabel.innerText = item.label;
+
+            // Pick colors based on index
+            const c1 = colors[(index * 2) % colors.length];
+            const c2 = colors[(index * 2 + 1) % colors.length];
+
+            // Create balloons
+            balloonsWrapper.appendChild(createBalloon(item.left, item.right, c1));
+            balloonsWrapper.appendChild(createBalloon(item.right, item.left, c2));
+        }
+
+        function createBalloon(num, otherNum, colorClass) {
+            const container = document.createElement('div');
+            container.className = 'balloon-container';
+
+            container.innerHTML = `
+                <div class="try-again">Try Again!</div>
+                <div class="balloon ${colorClass}">${num}</div>
+                <div class="string"></div>
+                <div class="star-effect">⭐</div>
+            `;
+
+            container.onclick = (e) => {
+                // Prevent multiple clicks if parent is disabled
+                if (balloonsWrapper.style.pointerEvents === 'none') return;
+
+                if (num > otherNum) {
+                    // CORRECT
+                    playSound('pop');
+                    container.classList.add('popped');
+                    // Disable all clicks immediately
+                    balloonsWrapper.style.pointerEvents = 'none';
+
+                    setTimeout(() => {
+                        startMysteryPhase();
+                    }, 1200);
+                } else {
+                    // INCORRECT
+                    playSound('error');
+                    container.classList.add('shake');
+                    setTimeout(() => container.classList.remove('shake'), 500);
+                }
+            };
+
+            return container;
+        }
+
+        // --- MYSTERY PHASE ---
+        function startMysteryPhase() {
+            qWrapper.style.display = 'none';
+            mysteryArea.style.display = 'flex';
+            boxesContainer.innerHTML = '';
+            mysteryArea.setAttribute('data-locked', 'false');
+
+            // Prizes: 1 Trophy, 2 Candies
+            let prizes = ['🏆', '🍬', '🍬'];
+            prizes.sort(() => Math.random() - 0.5);
+
+            prizes.forEach(prize => {
+                const box = document.createElement('div');
+                box.className = 'mystery-box';
+                box.innerHTML = `
+                    <div class="lid"></div>
+                    <div class="prize">${prize}</div>
+                `;
+
+                box.onclick = () => {
+                    if (box.classList.contains('opened')) return;
+                    if (mysteryArea.getAttribute('data-locked') === 'true') return;
+
+                    // Open box
+                    box.classList.add('opened');
+                    playSound('win');
+                    mysteryArea.setAttribute('data-locked', 'true');
+
+                    score++;
+                    scoreDisplay.innerText = score;
+
+                    // Wait then go to next
+                    setTimeout(() => {
+                        currentQIndex++;
+                        showQuestion(currentQIndex);
+                    }, 2500);
+                };
+                boxesContainer.appendChild(box);
+            });
+        }
+
+        function endGame() {
+            startConfetti();
+            victoryModal.style.display = 'flex';
+            playSound('win');
+        }
+
+        // --- CONFETTI ---
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeC() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.onresize = resizeC;
+        resizeC();
+
+        function startConfetti() {
+            for(let i=0; i<200; i++) {
+                particles.push({
+                    x: Math.random()*canvas.width, y: Math.random()*canvas.height - canvas.height,
+                    w: Math.random()*10+5, h: Math.random()*10+5,
+                    color: `hsl(${Math.random()*360}, 100%, 50%)`,
+                    speed: Math.random()*5+2, angle: Math.random()*6.2, spin: Math.random()*0.2-0.1
+                });
+            }
+            loopConfetti();
+        }
+
+        function loopConfetti() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles.forEach(p => {
+                p.y += p.speed; p.angle += p.spin; p.x += Math.sin(p.angle);
+                if(p.y > canvas.height) { p.y = -20; p.x = Math.random()*canvas.width; }
+                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+                ctx.fillStyle = p.color; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h); ctx.restore();
+            });
+            requestAnimationFrame(loopConfetti);
+        }
+
+        // Start
+        initGame();
+
     </script>
- </body>
+</body>
 </html>
