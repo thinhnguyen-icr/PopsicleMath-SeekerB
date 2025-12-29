@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="../assets/brand.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tens and Ones Game</title>
+    
+    <!-- Tải Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tải Tone.js cho hiệu ứng âm thanh --><script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <!-- Tải Google Font 'Nunito' --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #FFD700 0%, #FF69B4 100%); /* Nền gradient tươi sáng */
+            touch-action: none;
+            overflow: hidden; /* Ngăn cuộn */
+        }
+        
+        #game-container {
+            max-width: 900px; /* Giảm chiều rộng tối đa */
+            max-height: 95vh; /* Giới hạn chiều cao */
+            overflow: hidden; /* SỬA LỖI: Đổi từ 'auto' sang 'hidden' để tắt cuộn trên di động */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background-color: #fcfcfc; /* Màu nền trắng nhẹ */
+        }
+
+        /* -- Khu vực kéo thả -- */
+        .tens-and-ones-frame {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border: 4px solid #6b46c1; /* Màu tím đậm */
+            border-radius: 8px;
+            background-color: #fefcbf; /* Màu vàng nhạt */
+            min-height: 120px; 
+        }
+        
+        .dropzone {
+            min-height: 100px; 
+            padding: 8px;
+            display: flex;
+            flex-wrap: wrap; /* Cho phép các khối gói lại */
+            align-content: flex-start; /* Sắp xếp từ trên xuống */
+            gap: 4px;
+        }
+        
+        .dropzone-tens {
+            border-right: 4px solid #6b46c1;
+            max-height: 120px; 
+            overflow-y: auto;
+        }
+        .dropzone-ones {
+             max-height: 120px; 
+             overflow-y: auto;
+        }
+
+        /* -- Kiểu dáng cho các khối Unifix -- */
+        .cube {
+            cursor: grab;
+            user-select: none;
+            border-radius: 4px;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+            border: 1px solid rgba(0,0,0,0.2);
+            transition: transform 0.1s ease-out; /* Thêm chuyển động nhỏ */
+        }
+        .cube:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+        
+        /* Khối đơn vị (One-Cube) */
+        .one-cube {
+            width: 30px; 
+            height: 30px;
+            background-color: #4299e1; /* Blue */
+            border-color: #2b6cb0;
+        }
+        
+        /* Khối hàng chục (Ten-Rod) - NẰM NGANG VÀ NHỎ HƠN */
+        .ten-rod {
+            width: 300px; /* Chiều rộng */
+            height: 30px; /* Chiều cao */
+            background-color: #e53e3e; /* Red */
+            border-color: #c53030;
+            display: flex;
+            flex-direction: row; /* Nằm ngang */
+            gap: 0px; 
+            margin: 2px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            border-radius: 4px;
+        }
+        .ten-rod-segment {
+            width: 30px; /* Mỗi phân đoạn rộng 30px */
+            height: 100%;
+            background-color: #e53e3e;
+            border-right: 1px solid #c53030; /* Viền bên phải */
+        }
+        .ten-rod-segment:last-child {
+            border-right: none;
+        }
+
+
+        /* -- Kiểu dáng cho bộ bài -- */
+        #flashcard-deck {
+            width: 90px; 
+            height: 90px; 
+            position: relative; 
+            cursor: pointer;
+            perspective: 1000px;
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            transition: transform 0.6s;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .card-back {
+            background: linear-gradient(135deg, #a78bfa 0%, #6d28d9 100%); /* Màu tím mộng mơ */
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem; 
+            transform: rotateY(0deg);
+        }
+        .card-front {
+            background: white;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem; 
+            font-weight: 900;
+            transform: rotateY(180deg);
+        }
+        
+        #flashcard-deck.is-flipped .card-back {
+            transform: rotateY(-180deg);
+        }
+        #flashcard-deck.is-flipped .card-front {
+            transform: rotateY(0deg);
+        }
+        
+        /* -- Kiểu dáng cho đối tượng đang kéo -- */
+        .drag-clone {
+            position: absolute;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.8;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Hiệu ứng rung lắc */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .shake {
+            animation: shake 0.4s ease-in-out; 
+        }
+
+        /* Hiệu ứng nảy lên */
+        @keyframes bounce-in {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .bounce-in {
+            animation: bounce-in 0.3s ease-out; 
+        }
+        
+        /* Nút */
+        button {
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.07);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* CSS cho Hộp quà Bí ẩn (Bonus Modal) */
+        .mystery-box {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .mystery-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+<img src="../assets/logo-oodles-math.png" class="oodles-logo">
+    <div id="game-container" class="w-full bg-white rounded-2xl p-6 md:p-8 relative">
+        
+        <!-- Tiêu đề và Thẻ bài --><div class="flex flex-col items-center mb-4">
+            <!-- SỬA LỖI: Tiêu đề căn giữa và giảm khoảng cách dưới (mb-2) --><h1 class="text-2xl md:text-3xl font-black text-purple-700 text-center mb-2">Tens and Ones Game</h1>
+            
+            <div class="flex justify-center items-end w-full gap-4"> 
+                <!-- Thẻ bài (di chuyển xuống thấp hơn) --><div class="text-center flex flex-col items-center">
+                    <h2 class="text-base font-bold text-gray-700 mb-1">Click the card!</h2>
+                    <div id="flashcard-deck" title="Click to draw a new number">
+                        <div id="card-face-back" class="card-face card-back">?</div>
+                        <div id="card-face-front" class="card-face card-front"></div>
+                    </div>
+                </div>
+
+                <!-- Cube Bank (Giữ nguyên vị trí này) --><div class="flex items-center justify-center gap-6 p-3 bg-indigo-100 rounded-lg flex-grow">
+                    <p id="tens-first-warning" class="text-sm md:text-base text-red-600 font-bold hidden absolute -top-8 bg-yellow-100 p-2 rounded-md shadow-md">
+                        Please place the Ten rods first!
+                    </p>
+                    
+                    <!-- Nguồn kéo Ten-Rod --><div class="text-center">
+                        <p class="font-bold text-base text-gray-800">Ten Rod</p>
+                        <div id="source-ten-rod" class="cube ten-rod" data-type="ten">
+                            <script>
+                                for(let i = 0; i < 10; i++) {
+                                    document.write('<div class="ten-rod-segment"></div>');
+                                }
+                            </script>
+                        </div>
+                    </div>
+                    
+                    <!-- Nguồn kéo One-Cube --><div class="text-center">
+                        <p class="font-bold text-base text-gray-800">One Cube</p>
+                        <div id="source-one-cube" class="cube one-cube" data-type="one"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Khu vực Làm việc (Kéo thả) --><div class="flex flex-col lg:flex-row gap-4 mt-4"> 
+            <div class="w-full">
+                <div class="tens-and-ones-frame">
+                    <div class="text-center text-xl font-bold text-red-600 p-2 border-b-4 border-purple-800">TENS</div>
+                    <div class="text-center text-xl font-bold text-blue-600 p-2 border-b-4 border-purple-800">ONES</div>
+                    
+                    <div id="tens-column" class="dropzone dropzone-tens"></div>
+                    <div id="ones-column" class="dropzone dropzone-ones"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Khu vực Điều khiển (Submit) --><!-- SỬA LỖI: Giảm khoảng cách trên (mt-4) --><div class="flex justify-center items-center gap-4 mt-4">
+            <button id="reset-board-button" class="px-5 py-2 bg-gray-400 text-white text-lg font-bold rounded-lg hover:bg-gray-500">
+                Reset Board
+            </button>
+            <button id="submit-button" class="px-8 py-3 bg-green-500 text-white text-xl font-bold rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                Submit
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Modal Phản hồi --><div id="feedback-modal" class="hidden absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div id="feedback-content" class="text-6xl md:text-7xl font-black text-white p-8 md:p-10 rounded-lg bounce-in">
+            <!-- "Correct!" hoặc "Try Again!" --></div>
+    </div>
+    
+    <!-- BỔ SUNG: Modal Hộp Quà (Bonus Modal) --><div id="bonus-modal" class="hidden absolute inset-0 bg-gradient-to-br from-yellow-400 to-orange-500 flex flex-col items-center justify-center z-40 p-4">
+        <h2 class="text-5xl md:text-6xl font-black text-white mb-4 animate-bounce">BONUS!</h2>
+        <p class="text-2xl text-white mb-6">Choose a mystery box!</p>
+        <div id="box-container" class="flex flex-wrap justify-center gap-6 md:gap-10 mb-6">
+            <!-- Các hộp quà sẽ được tạo bằng JS --></div>
+        <p id="bonus-result" class="text-3xl text-white font-bold mt-6 hidden"></p>
+    </div>
+    
+    <!-- BỔ SUNG: Modal Kết Thúc Trò Chơi (Game Over) --><div id="game-over-modal" class="hidden absolute inset-0 bg-gradient-to-br from-green-400 to-blue-500 flex flex-col items-center justify-center z-40 p-4">
+        <h2 class="text-6xl md:text-8xl font-black text-white mb-4 bounce-in">Great Job!</h2>
+        <p class="text-3xl text-white mb-6">You finished all the cards!</p>
+        <p id="final-score" class="text-4xl text-yellow-300 font-bold mb-8">Final Score: 0</p>
+        <button id="play-again-button" class="px-8 py-3 bg-white text-blue-600 text-xl font-bold rounded-lg shadow-lg hover:bg-gray-100">
+            Play Again
+        </button>
+    </div>
+
+
+    <script>
+        // --- SỬA LỖI: Khai báo biến DOM bằng let ---
+        let gameContainer, scoreEl, cardDeckEl, cardBackEl, cardFrontEl, 
+            submitButton, resetButton, feedbackModal, feedbackContent, 
+            tensFirstWarning, bonusModal, boxContainer, bonusResult, 
+            gameOverModal, finalScoreEl, playAgainButton, sourceTenRod, 
+            sourceOneCube, tensColumn, onesColumn;
+        
+        // --- Trạng thái Trò chơi ---
+        let score = 0;
+        let currentNumber = 0;
+        let cardDeck = [];
+        let isChecking = false;
+        let isBonusChecking = false;
+        let isDragging = false;
+        let dragClone = null;
+        let dragSourceType = ''; 
+        
+        // --- Cấu hình Âm thanh ---
+        let clickSynth, correctSynth, incorrectSynth, drawCardSynth, grabCubeSynth, dropCubeSynth, removeCubeSynth, warningSynth, bonusSound, winSound, backgroundMusic;
+        
+        // SỬA LỖI ÂM THANH: Đảm bảo Tone.start() được gọi và await
+        async function initAudio() {
+            if (!clickSynth) {
+                await Tone.start(); // <-- Chờ context khởi động
+                console.log("Audio Context Started"); // Ghi log để kiểm tra
+                
+                // Khởi tạo tất cả synths
+                clickSynth = new Tone.MembraneSynth({ pitchDecay: 0.01, envelope: { attack: 0.001, decay: 0.1, sustain: 0 } }).toDestination();
+                correctSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'triangle' }, envelope: { attack: 0.05, decay: 0.2, sustain: 0.3, release: 0.5 } }).toDestination();
+                incorrectSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.4 } }).toDestination();
+                drawCardSynth = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.2 } }).toDestination();
+                grabCubeSynth = new Tone.FMSynth({ harmonicity: 3.01, modulationIndex: 14, envelope: { attack: 0.01, decay: 0.2, sustain: 0.0, release: 0.2}, modulationEnvelope: { attack: 0.001, decay: 0.2, sustain: 0.0, release: 0.2}, oscillator: { type: 'sine' }, modulation: { type: 'square' } }).toDestination();
+                dropCubeSynth = new Tone.PluckSynth({ attackNoise: 0.5, dampening: 4000, resonance: 0.9 }).toDestination();
+                removeCubeSynth = new Tone.NoiseSynth({ volume: -10, envelope: { attack: 0.001, decay: 0.1 } }).toDestination();
+                warningSynth = new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
+                bonusSound = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.5 } }).toDestination();
+                winSound = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' } }).toDestination();
+
+                // NHẠC NỀN MỚI - SỬA LỖI: Đã tắt nhạc nền
+                /*
+                backgroundMusic = new Tone.Sequence(
+                    (time, note) => {
+                        // Sử dụng synth riêng cho nhạc nền để không xung đột
+                        if(!correctSynth) return;
+                        correctSynth.triggerAttackRelease(note, "8n", time);
+                    },
+                    ["C4", "E4", "G4", "C5", "G4", "E4"], // Melody vui tươi
+                    "4n"
+                ).start(0);
+                backgroundMusic.loop = true;
+                backgroundMusic.playbackRate = 1.2; 
+                Tone.Transport.bpm.value = 120; 
+                Tone.Master.volume.value = -15; 
+                
+                // Khởi động transport SAU KHI context đã start
+                Tone.Transport.start(); 
+                */
+            }
+        }
+        
+        // SỬA LỖI ÂM THANH: Gọi initAudio() một cách bất đồng bộ
+        document.body.addEventListener('mousedown', async () => {
+            await initAudio();
+        }, { once: true });
+        document.body.addEventListener('touchstart', async () => {
+            await initAudio();
+        }, { once: true });
+
+
+        // --- Logic Trò chơi ---
+        
+        function initGame() {
+            // SỬA LỖI: Gán các biến DOM bên trong initGame
+            gameContainer = document.getElementById('game-container');
+            scoreEl = document.getElementById('score');
+            cardDeckEl = document.getElementById('flashcard-deck');
+            cardBackEl = document.getElementById('card-face-back');
+            cardFrontEl = document.getElementById('card-face-front');
+            submitButton = document.getElementById('submit-button');
+            resetButton = document.getElementById('reset-board-button');
+            feedbackModal = document.getElementById('feedback-modal');
+            feedbackContent = document.getElementById('feedback-content');
+            tensFirstWarning = document.getElementById('tens-first-warning');
+            bonusModal = document.getElementById('bonus-modal');
+            boxContainer = document.getElementById('box-container');
+            bonusResult = document.getElementById('bonus-result');
+            gameOverModal = document.getElementById('game-over-modal');
+            finalScoreEl = document.getElementById('final-score');
+            playAgainButton = document.getElementById('play-again-button');
+            sourceTenRod = document.getElementById('source-ten-rod'); 
+            sourceOneCube = document.getElementById('source-one-cube');
+            tensColumn = document.getElementById('tens-column');
+            onesColumn = document.getElementById('ones-column');
+            
+            score = 0;
+            updateScore(); 
+            shuffleDeck();
+            drawCard();
+            setupDragEvents(); 
+            
+            submitButton.removeEventListener('click', handleSubmit);
+            resetButton.removeEventListener('click', resetBoard);
+            cardDeckEl.removeEventListener('click', drawCard);
+            playAgainButton.removeEventListener('click', initGame);
+
+            submitButton.addEventListener('click', handleSubmit);
+            resetButton.addEventListener('click', resetBoard);
+            cardDeckEl.addEventListener('click', drawCard);
+            playAgainButton.addEventListener('click', initGame);
+
+            gameOverModal.classList.add('hidden');
+            bonusModal.classList.add('hidden');
+            
+            // SỬA LỖI ÂM THANH: Tắt nhạc nền
+            /*
+            if (backgroundMusic && Tone.Transport.state !== 'started') {
+                Tone.Transport.start();
+            }
+            */
+        }
+
+        function shuffleDeck() {
+            cardDeck = Array.from({ length: 11 }, (_, i) => i + 10);
+            for (let i = cardDeck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cardDeck[i], cardDeck[j]] = [cardDeck[j], cardDeck[i]];
+            }
+        }
+
+        function drawCard() {
+            if (isChecking || isBonusChecking) return;
+            
+            if (cardDeck.length === 0) {
+                showGameEnd();
+                return;
+            }
+            
+            cardDeckEl.classList.remove('is-flipped');
+            submitButton.disabled = true;
+            tensFirstWarning.classList.add('hidden'); 
+            
+            setTimeout(() => {
+                currentNumber = cardDeck.pop();
+                cardFrontEl.textContent = currentNumber;
+                cardBackEl.textContent = "?"; 
+                
+                cardDeckEl.classList.add('is-flipped');
+                if(drawCardSynth) drawCardSynth.triggerAttackRelease("G4", "8n");
+                
+                resetBoard();
+                submitButton.disabled = false;
+            }, 300);
+        }
+        
+        function resetBoard() {
+            tensColumn.innerHTML = '';
+            onesColumn.innerHTML = '';
+            tensFirstWarning.classList.add('hidden');
+        }
+
+        function updateScore() {
+            // SỬA LỖI: Thêm kiểm tra null
+            if (scoreEl) {
+                scoreEl.textContent = `Score: ${score}`;
+            }
+        }
+        
+        function handleSubmit() {
+            if (isChecking || !currentNumber) return;
+            
+            const targetTens = Math.floor(currentNumber / 10);
+            const targetOnes = currentNumber % 10;
+            
+            const placedTens = tensColumn.querySelectorAll('.ten-rod').length;
+            const placedOnes = onesColumn.querySelectorAll('.one-cube').length;
+            
+            if (placedTens === targetTens && placedOnes === targetOnes) {
+                handleCorrectAnswer();
+            } else {
+                handleIncorrectAnswer();
+            }
+        }
+
+        function handleCorrectAnswer() {
+            isChecking = true;
+            if(correctSynth) correctSynth.triggerAttackRelease(["C5", "E5", "G5"], "0.2");
+            
+            showFeedback("Correct!", "bg-green-500");
+            
+            setTimeout(() => {
+                feedbackModal.classList.add('hidden');
+                showBonusRound(); 
+            }, 1200); 
+        }
+
+        function handleIncorrectAnswer() {
+            isChecking = true;
+            if(incorrectSynth) incorrectSynth.triggerAttackRelease(["C4", "B3"], "0.3");
+            
+            gameContainer.classList.add('shake');
+            showFeedback("Try Again!", "bg-red-500");
+            
+            setTimeout(() => {
+                gameContainer.classList.remove('shake');
+                feedbackModal.classList.add('hidden');
+                isChecking = false;
+            }, 1500);
+        }
+
+        function showFeedback(message, bgColor) {
+            feedbackContent.textContent = message;
+            feedbackContent.className = `text-6xl md:text-7xl font-black text-white p-8 md:p-10 rounded-lg bounce-in ${bgColor}`;
+            feedbackModal.classList.remove('hidden');
+        }
+        
+        // --- LOGIC HỘP QUÀ MỚI ---
+        const doorPrizes = [5, 10, 15]; 
+        
+        function showBonusRound() {
+            isBonusChecking = true;
+            bonusModal.classList.remove('hidden');
+            bonusResult.classList.add('hidden');
+            
+            const shuffledPrizes = [...doorPrizes].sort(() => Math.random() - 0.5);
+            
+            boxContainer.innerHTML = ''; 
+            
+            shuffledPrizes.forEach((prize) => {
+                const box = document.createElement('button');
+                box.className = 'mystery-box w-32 h-32 md:w-40 md:h-40 bg-purple-500 rounded-lg shadow-xl flex items-center justify-center text-purple-100 transition-all duration-300 hover:scale-105 hover:bg-purple-600';
+                box.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-24 h-24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 4.5A2.5 2.5 0 0 0 18 2H6a2.5 2.5 0 0 0-2.5 2.5v4.61c.4.19.76.44 1.09.75L7 12.27V9h10v3.27l2.41-2.41c.33-.31.69-.56 1.09-.75V4.5zM6 14.5c0 1.2.54 2.26 1.38 2.96L6 18.5V14.5zM18 14.5v4l-1.38-1.04A3.503 3.503 0 0 0 18 14.5zM12 7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM9 14.13c.64.41 1.41.67 2.25.67h1.5c.84 0 1.61-.26 2.25-.67l.63-.4V10c0-2.21-1.79-4-4-4s-4 1.79-4 4v3.73l.63.4zM9 15.5v3A2.5 2.5 0 0 0 11.5 21h1A2.5 2.5 0 0 0 15 18.5v-3c-1 .8-2.16 1.3-3.5 1.3S10 16.3 9 15.5z"/></svg>`;
+                box.dataset.prize = prize;
+                box.addEventListener('click', handleBoxClick, { once: true });
+                boxContainer.appendChild(box);
+            });
+        }
+        
+        function handleBoxClick(e) {
+            if (!isBonusChecking) return;
+            
+            const clickedBox = e.currentTarget;
+            const prize = parseInt(clickedBox.dataset.prize);
+            
+            score += prize; 
+            updateScore();
+            
+            if(bonusSound) bonusSound.triggerAttackRelease("C5", "0.1", Tone.now() + 0.1);
+            if(bonusSound) bonusSound.triggerAttackRelease("G5", "0.3", Tone.now() + 0.2);
+
+            const allBoxes = boxContainer.querySelectorAll('.mystery-box');
+            allBoxes.forEach(box => {
+                const boxPrize = parseInt(box.dataset.prize);
+                box.innerHTML = `<span class="text-5xl font-black bounce-in">+${boxPrize}</span>`;
+                box.disabled = true;
+                
+                if (box !== clickedBox) {
+                    box.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+                    box.classList.add('bg-gray-400', 'opacity-60');
+                } else {
+                    box.classList.remove('bg-purple-500');
+                    box.classList.add('bg-yellow-400');
+                    box.style.transform = 'scale(1.1)';
+                }
+            });
+            
+            const resultText = `You won ${prize} bonus points!`;
+            bonusResult.textContent = resultText;
+            bonusResult.classList.remove('hidden');
+            
+            setTimeout(() => {
+                bonusModal.classList.add('hidden');
+                isChecking = false;
+                isBonusChecking = false;
+                drawCard(); 
+            }, 2000);
+        }
+        
+        // --- LOGIC KẾT THÚC GAME MỚI ---
+        function showGameEnd() {
+            // SỬA LỖI: Tắt nhạc nền
+            /*
+            if (backgroundMusic) {
+                Tone.Transport.stop();
+            }
+            */
+
+            finalScoreEl.textContent = `Final Score: ${score}`;
+            gameOverModal.classList.remove('hidden');
+            
+            if(winSound) {
+                const now = Tone.now();
+                winSound.triggerAttackRelease("C5", "8n", now);
+                winSound.triggerAttackRelease("E5", "8n", now + 0.2);
+                winSound.triggerAttackRelease("G5", "8n", now + 0.4);
+                winSound.triggerAttackRelease("C6", "4n", now + 0.6);
+            }
+        }
+
+        // --- Logic Kéo và Thả (KHÔNG THAY ĐỔI) ---
+        
+        function setupDragEvents() {
+            [sourceTenRod, sourceOneCube].forEach(source => {
+                source.addEventListener('mousedown', startDrag);
+                source.addEventListener('touchstart', startDrag, { passive: false });
+            });
+            
+            document.addEventListener('mousemove', dragMove);
+            document.addEventListener('touchmove', dragMove, { passive: false });
+            
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+        }
+        
+        function startDrag(e) {
+            e.preventDefault();
+            if (isChecking || isBonusChecking) return;
+            
+            const sourceEl = e.currentTarget;
+            dragSourceType = sourceEl.dataset.type; 
+            
+            dragClone = sourceEl.cloneNode(true);
+            if (dragSourceType === 'ten') {
+                dragClone.innerHTML = sourceEl.innerHTML; 
+            }
+            
+            dragClone.classList.add('drag-clone');
+            document.body.appendChild(dragClone);
+            
+            isDragging = true;
+            
+            const pos = getEventPosition(e);
+            updateClonePosition(pos.x, pos.y);
+            
+            if(grabCubeSynth) grabCubeSynth.triggerAttackRelease("C4", "8n"); 
+        }
+        
+        function dragMove(e) {
+            if (!isDragging || isBonusChecking) return;
+            
+            e.preventDefault();
+            const pos = getEventPosition(e);
+            updateClonePosition(pos.x, pos.y);
+        }
+        
+        function updateClonePosition(x, y) {
+            if (!dragClone) return;
+            dragClone.style.left = `${x}px`;
+            dragClone.style.top = `${y}px`;
+        }
+
+        function endDrag(e) {
+            if (!isDragging || !dragClone || isBonusChecking) return;
+            
+            isDragging = false;
+            
+            dragClone.style.display = 'none';
+            const pos = getEventPosition(e);
+            const dropTarget = document.elementFromPoint(pos.x, pos.y);
+            
+            document.body.removeChild(dragClone);
+            dragClone = null;
+            
+            if (!dropTarget) {
+                if(dropCubeSynth) dropCubeSynth.triggerAttackRelease("C2", "8n");
+                return;
+            }
+
+            if (dragSourceType === 'ten' && tensColumn.contains(dropTarget)) {
+                placeCube('ten');
+                if(dropCubeSynth) dropCubeSynth.triggerAttackRelease("E3", "8n");
+            } else if (dragSourceType === 'one' && onesColumn.contains(dropTarget)) {
+                
+                const targetTens = Math.floor(currentNumber / 10);
+                const placedTens = tensColumn.querySelectorAll('.ten-rod').length;
+                
+                if (placedTens < targetTens) {
+                    tensFirstWarning.classList.remove('hidden');
+                    if(warningSynth) warningSynth.triggerAttackRelease("A3", "8n");
+                    gameContainer.classList.add('shake');
+                    setTimeout(() => gameContainer.classList.remove('shake'), 400);
+                } else {
+                    tensFirstWarning.classList.add('hidden');
+                    placeCube('one');
+                    if(dropCubeSynth) dropCubeSynth.triggerAttackRelease("G3", "8n");
+                }
+                
+            } else {
+                if(dropCubeSynth) dropCubeSynth.triggerAttackRelease("C2", "8n");
+            }
+        }
+        
+        function placeCube(type) {
+            let newCube;
+            if (type === 'ten') {
+                newCube = sourceTenRod.cloneNode(true);
+                newCube.innerHTML = sourceTenRod.innerHTML; 
+                tensColumn.appendChild(newCube);
+            } else {
+                newCube = sourceOneCube.cloneNode(true);
+                onesColumn.appendChild(newCube);
+            }
+            
+            newCube.addEventListener('click', () => {
+                newCube.remove();
+                if(removeCubeSynth) removeCubeSynth.triggerAttackRelease('8n', Tone.now(), 0.5);
+                if(type === 'ten') {
+                    tensFirstWarning.classList.add('hidden');
+                }
+            });
+        }
+        
+        function getEventPosition(e) {
+            // SỬA LỖI: Cập nhật hàm để xử lý chính xác 'touchend'
+            if (e.touches && e.touches.length > 0) {
+                // Dùng cho touchstart và touchmove
+                return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+            if (e.changedTouches && e.changedTouches.length > 0) {
+                // Dùng cho touchend (khi e.touches bị rỗng)
+                return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+            }
+            // Dùng cho mouse events (dự phòng)
+            return { x: e.clientX, y: e.clientY };
+        }
+        
+        document.addEventListener('DOMContentLoaded', initGame);
+
+    </script>
+</body>
+</html>
