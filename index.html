@@ -1,68 +1,360 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Math Games Library (32 Lessons)</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Thư viện 32 game</title>
+
   <style>
-    body{margin:0;font-family:system-ui,Arial;background:#f6f7fb}
-    header{padding:16px 18px;background:white;position:sticky;top:0;box-shadow:0 2px 10px rgba(0,0,0,.06)}
-    h1{margin:0;font-size:18px}
-    .wrap{display:grid;grid-template-columns:320px 1fr;gap:14px;padding:14px}
-    .list{background:white;border-radius:14px;padding:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);height:calc(100vh - 92px);overflow:auto}
-    .btn{width:100%;text-align:left;border:0;background:#f3f6ff;margin:6px 0;padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:600}
-    .btn:hover{background:#e8eeff}
-    .meta{font-size:12px;opacity:.7;margin-top:4px;font-weight:500}
-    .player{background:white;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);height:calc(100vh - 92px);overflow:hidden}
-    iframe{width:100%;height:100%;border:0}
-    .empty{display:grid;place-items:center;height:100%;color:#666}
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --border:#e9ecf5;
+      --text:#0f172a;
+      --muted:#64748b;
+      --shadow:0 10px 25px rgba(15, 23, 42, .08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:var(--bg);
+    }
+
+    header{
+      position: sticky;
+      top:0;
+      z-index:10;
+      background:rgba(246,247,251,.85);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    header .title{
+      font-size:18px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    header .hint{
+      color:var(--muted);
+      font-size:12px;
+      margin-left:8px;
+    }
+
+    .wrap{
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:16px;
+      padding:16px;
+      min-height: calc(100vh - 58px);
+    }
+
+    .sidebar{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height: 520px;
+    }
+    .sidebar .side-head{
+      padding:12px 12px 8px 12px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .search{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:13px;
+      outline:none;
+      background:#fbfcff;
+    }
+    .list{
+      padding:10px;
+      overflow:auto;
+      height: 100%;
+    }
+
+    .item{
+      width:100%;
+      text-align:left;
+      border:1px solid transparent;
+      background:#f7f9ff;
+      border-radius:16px;
+      padding:10px 12px;
+      cursor:pointer;
+      transition:.15s;
+      margin-bottom:10px;
+    }
+    .item:hover{transform: translateY(-1px); border-color: var(--border); background:#fff}
+    .item.active{border-color:#c7d2fe; background:#fff}
+    .item .t{font-weight:800; font-size:14px}
+    .item .d{color:var(--muted); font-size:12px; margin-top:2px}
+
+    .subrow{
+      display:flex;
+      gap:8px;
+      margin-top:8px;
+      flex-wrap:wrap;
+    }
+    .pill, .pillbtn{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background:#fff;
+      color:#111827;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .pillbtn{
+      cursor:pointer;
+    }
+
+    .main{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+      min-height: 520px;
+      display:flex;
+      flex-direction:column;
+    }
+    .main-top{
+      padding:12px 14px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .now{
+      font-weight:800;
+      font-size:14px;
+    }
+    .url{
+      color:var(--muted);
+      font-size:12px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width: 62ch;
+    }
+    .stage{
+      flex:1;
+      background: linear-gradient(135deg, #f0f5ff, #f6fff7);
+      padding:14px;
+    }
+    .empty{
+      height:100%;
+      display:grid;
+      place-items:center;
+      color:var(--muted);
+      font-size:14px;
+      padding:30px;
+      text-align:center;
+    }
+    iframe{
+      width:100%;
+      height: calc(100vh - 58px - 16px - 16px - 52px - 28px);
+      min-height: 520px;
+      border:0;
+      border-radius: 16px;
+      background:#fff;
+    }
+
     @media (max-width: 980px){
       .wrap{grid-template-columns:1fr}
-      .list{height:auto;max-height:45vh}
-      .player{height:50vh}
+      iframe{height: 72vh}
     }
   </style>
 </head>
+
 <body>
   <header>
-    <h1>🎮 Thư viện 32 game — bấm chọn bài để chơi</h1>
+    <div class="title">🎮 Thư viện 32 game — bấm chọn bài để chơi</div>
+    <div class="hint">Mẹo: bạn có thể gửi link mở đúng game bằng “?game=...”</div>
   </header>
 
   <div class="wrap">
-    <div class="list" id="gameList"></div>
+    <aside class="sidebar">
+      <div class="side-head">
+        <input id="q" class="search" placeholder="Tìm lesson… (vd: 05, ordinal, animal…)" />
+      </div>
+      <div id="gameList" class="list"></div>
+    </aside>
 
-    <div class="player">
-      <div class="empty" id="emptyState">Chọn 1 game bên trái 👈</div>
-      <iframe id="gameFrame" title="Game" style="display:none;"></iframe>
-    </div>
+    <main class="main">
+      <div class="main-top">
+        <div>
+          <div id="nowTitle" class="now">Chưa chọn game</div>
+          <div id="nowUrl" class="url"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <a id="openBtn" class="pill" href="#" target="_blank" rel="noopener" style="display:none;">↗ Open</a>
+          <button id="copyBtn" class="pillbtn" style="display:none;">📋 Copy link</button>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div id="emptyState" class="empty">
+          Chọn 1 lesson ở menu bên trái để bắt đầu chơi 🎯<br/>
+          (Nếu Lesson có nhiều game, bạn sẽ thấy Game A/B)
+        </div>
+        <iframe id="gameFrame" title="Math Game" style="display:none;"></iframe>
+      </div>
+    </main>
   </div>
 
   <script>
-    // Mặc định: lesson-01/ ... lesson-32/
-    const games = Array.from({length: 32}, (_, i) => {
-      const n = String(i+1).padStart(2,'0');
-      return {
-        title: `Lesson ${n} – Game`,
-        desc: `Seeker B • Lesson ${n}`,
-        url: `lesson-${n}/`
+    // ====== CONFIG: Danh sách game ======
+    // Quy ước:
+    // - id dùng cho ?game=
+    // - url là đường dẫn folder (có / cuối)
+    // - title/desc hiển thị menu
+    const games = [
+      { id:"lesson-01", title:"Lesson 01 – Game", desc:"Seeker B • Lesson 01", url:"lesson-01/" },
+      { id:"lesson-02", title:"Lesson 02 – Game", desc:"Seeker B • Lesson 02", url:"lesson-02/" },
+      { id:"lesson-03", title:"Lesson 03 – Game", desc:"Seeker B • Lesson 03", url:"lesson-03/" },
+      { id:"lesson-04", title:"Lesson 04 – Game", desc:"Seeker B • Lesson 04", url:"lesson-04/" },
+
+      // ✅ Lesson 05 có 2 game:
+      { id:"lesson-05-a", title:"Lesson 05 – Game A", desc:"Seeker B • Lesson 05", url:"lesson-05-game-1/" },
+      { id:"lesson-05-b", title:"Lesson 05 – Game B", desc:"Seeker B • Lesson 05", url:"lesson-05-game-2/" },
+
+      { id:"lesson-06", title:"Lesson 06 – Game", desc:"Seeker B • Lesson 06", url:"lesson-06/" },
+      { id:"lesson-07", title:"Lesson 07 – Game", desc:"Seeker B • Lesson 07", url:"lesson-07/" },
+      { id:"lesson-08", title:"Lesson 08 – Game", desc:"Seeker B • Lesson 08", url:"lesson-08/" },
+      { id:"lesson-09", title:"Lesson 09 – Game", desc:"Seeker B • Lesson 09", url:"lesson-09/" },
+      { id:"lesson-10", title:"Lesson 10 – Game", desc:"Seeker B • Lesson 10", url:"lesson-10/" },
+      { id:"lesson-11", title:"Lesson 11 – Game", desc:"Seeker B • Lesson 11", url:"lesson-11/" },
+      { id:"lesson-12", title:"Lesson 12 – Game", desc:"Seeker B • Lesson 12", url:"lesson-12/" },
+      { id:"lesson-13", title:"Lesson 13 – Game", desc:"Seeker B • Lesson 13", url:"lesson-13/" },
+      { id:"lesson-14", title:"Lesson 14 – Game", desc:"Seeker B • Lesson 14", url:"lesson-14/" },
+      { id:"lesson-15", title:"Lesson 15 – Game", desc:"Seeker B • Lesson 15", url:"lesson-15/" },
+      { id:"lesson-16", title:"Lesson 16 – Game", desc:"Seeker B • Lesson 16", url:"lesson-16/" },
+      { id:"lesson-17", title:"Lesson 17 – Game", desc:"Seeker B • Lesson 17", url:"lesson-17/" },
+      { id:"lesson-18", title:"Lesson 18 – Game", desc:"Seeker B • Lesson 18", url:"lesson-18/" },
+      { id:"lesson-19", title:"Lesson 19 – Game", desc:"Seeker B • Lesson 19", url:"lesson-19/" },
+      { id:"lesson-20", title:"Lesson 20 – Game", desc:"Seeker B • Lesson 20", url:"lesson-20/" },
+      { id:"lesson-21", title:"Lesson 21 – Game", desc:"Seeker B • Lesson 21", url:"lesson-21/" },
+      { id:"lesson-22", title:"Lesson 22 – Game", desc:"Seeker B • Lesson 22", url:"lesson-22/" },
+      { id:"lesson-23", title:"Lesson 23 – Game", desc:"Seeker B • Lesson 23", url:"lesson-23/" },
+      { id:"lesson-24", title:"Lesson 24 – Game", desc:"Seeker B • Lesson 24", url:"lesson-24/" },
+      { id:"lesson-25", title:"Lesson 25 – Game", desc:"Seeker B • Lesson 25", url:"lesson-25/" },
+      { id:"lesson-26", title:"Lesson 26 – Game", desc:"Seeker B • Lesson 26", url:"lesson-26/" },
+      { id:"lesson-27", title:"Lesson 27 – Game", desc:"Seeker B • Lesson 27", url:"lesson-27/" },
+      { id:"lesson-28", title:"Lesson 28 – Game", desc:"Seeker B • Lesson 28", url:"lesson-28/" },
+      { id:"lesson-29", title:"Lesson 29 – Game", desc:"Seeker B • Lesson 29", url:"lesson-29/" },
+      { id:"lesson-30", title:"Lesson 30 – Game", desc:"Seeker B • Lesson 30", url:"lesson-30/" },
+      { id:"lesson-31", title:"Lesson 31 – Game", desc:"Seeker B • Lesson 31", url:"lesson-31/" },
+      { id:"lesson-32", title:"Lesson 32 – Game", desc:"Seeker B • Lesson 32", url:"lesson-32/" },
+    ];
+
+    // ====== Helpers ======
+    const listEl = document.getElementById("gameList");
+    const frame = document.getElementById("gameFrame");
+    const empty = document.getElementById("emptyState");
+    const nowTitle = document.getElementById("nowTitle");
+    const nowUrl = document.getElementById("nowUrl");
+    const openBtn = document.getElementById("openBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const search = document.getElementById("q");
+
+    const base = location.origin + location.pathname.replace(/index\.html$/,"");
+
+    function fullLink(gameId){
+      return base + `?game=${encodeURIComponent(gameId)}`;
+    }
+    function directLink(url){
+      return base + url;
+    }
+
+    function selectGame(g){
+      // UI active
+      document.querySelectorAll(".item").forEach(x => x.classList.remove("active"));
+      const btn = document.querySelector(`[data-id="${g.id}"]`);
+      if(btn) btn.classList.add("active");
+
+      // Show iframe
+      empty.style.display = "none";
+      frame.style.display = "block";
+      frame.src = g.url;
+
+      // Top info
+      nowTitle.textContent = g.title;
+      nowUrl.textContent = directLink(g.url);
+
+      // Buttons
+      openBtn.style.display = "inline-flex";
+      openBtn.href = directLink(g.url);
+
+      copyBtn.style.display = "inline-flex";
+      copyBtn.onclick = async () => {
+        const link = fullLink(g.id);
+        try{
+          await navigator.clipboard.writeText(link);
+          copyBtn.textContent = "✅ Copied";
+          setTimeout(()=>copyBtn.textContent="📋 Copy link", 900);
+        }catch(e){
+          prompt("Copy link:", link);
+        }
       };
+
+      // Update URL with ?game=
+      const u = new URL(location.href);
+      u.searchParams.set("game", g.id);
+      history.replaceState(null,"",u.toString());
+    }
+
+    function render(list){
+      listEl.innerHTML = "";
+      list.forEach(g => {
+        const card = document.createElement("button");
+        card.className = "item";
+        card.setAttribute("data-id", g.id);
+        card.innerHTML = `<div class="t">${g.title}</div><div class="d">${g.desc}</div>`;
+        card.onclick = () => selectGame(g);
+        listEl.appendChild(card);
+      });
+    }
+
+    // Search
+    search.addEventListener("input", () => {
+      const q = search.value.trim().toLowerCase();
+      if(!q){ render(games); return; }
+      const filtered = games.filter(g =>
+        (g.title + " " + g.desc + " " + g.id + " " + g.url).toLowerCase().includes(q)
+      );
+      render(filtered);
     });
 
-    const list = document.getElementById('gameList');
-    const frame = document.getElementById('gameFrame');
-    const empty = document.getElementById('emptyState');
+    // Initial render
+    render(games);
 
-    games.forEach(g => {
-      const b = document.createElement('button');
-      b.className = 'btn';
-      b.innerHTML = `${g.title}<div class="meta">${g.desc}</div>`;
-      b.onclick = () => {
-        empty.style.display = 'none';
-        frame.style.display = 'block';
-        frame.src = g.url;
-      };
-      list.appendChild(b);
-    });
+    // Auto open by ?game=
+    const params = new URLSearchParams(location.search);
+    const gid = params.get("game");
+    if(gid){
+      const found = games.find(x => x.id === gid);
+      if(found) selectGame(found);
+    }
   </script>
 </body>
 </html>
