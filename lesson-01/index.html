@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animal Addition Adventure</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #FFE5F1, #E5F3FF, #F0FFE5);
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            min-height: 100vh;
+        }
+        .game-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .title {
+            text-align: center;
+            font-size: 2.2em;
+            color: #FF6B9D;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 15px;
+            background: #E0E0E0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF6B9D, #4ECDC4);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        .question-area {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .question-text {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .animals-display {
+            font-size: 3em;
+            margin: 20px 0;
+            min-height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 15px;
+        }
+        .plus-sign {
+            font-size: 4em;
+            color: #FF6B9D;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+        .number-bonds {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+            gap: 15px;
+        }
+        .bonds-top {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+        .bond-connector {
+            width: 3px;
+            height: 30px;
+            background: #FF6B9D;
+        }
+        .bond-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+        }
+        .part-circle {
+            background: #4ECDC4;
+        }
+        .whole-circle {
+            background: #FF6B9D;
+            width: 80px;
+            height: 80px;
+            font-size: 2em;
+        }
+        .answer-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 25px 0;
+        }
+        .answer-btn, .action-btn {
+            padding: 15px 25px;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+        .answer-btn {
+            background: linear-gradient(135deg, #FFE066, #FF9A56);
+            color: #333;
+        }
+        .answer-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .action-btn {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            color: white;
+            margin: 10px;
+        }
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+        .feedback {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin: 15px 0;
+            min-height: 30px;
+        }
+        .correct { color: #4CAF50; }
+        .incorrect { color: #FF5722; }
+
+        .celebration {
+            text-align: center;
+            animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .hidden { display: none; }
+        .listen-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            margin-left: 5px;
+            padding: 5px;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+        }
+        .listen-btn:hover {
+            transform: scale(1.2);
+        }
+        
+        /* Styles for Shell Game */
+        .mystery-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 1000;
+            animation: popIn 0.5s ease;
+            width: 90%;
+            max-width: 500px;
+        }
+        .mystery-box h3 {
+            color: #FF6B9D;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        /* Container needs relative positioning for absolute children */
+        .mystery-gifts-container {
+            position: relative;
+            height: 120px; /* Space for the boxes */
+            width: 100%;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+        .mystery-gift {
+            position: absolute; /* Absolute for animation */
+            font-size: 3.5em;
+            cursor: pointer;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            background: rgba(255, 107, 157, 0.1);
+            /* Updated transition to include 'left' for smooth shuffling */
+            transition: left 0.6s ease-in-out, background 0.2s; 
+            user-select: none;
+        }
+        .mystery-gift:hover {
+            background: rgba(255, 107, 157, 0.3);
+        }
+        .mystery-gift.disabled {
+            cursor: default;
+            pointer-events: none;
+        }
+        .mystery-message {
+            min-height: 1.5em;
+            font-size: 1.2em;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+    </style>
+ </head>
+ <body>
+  <div class="game-container">
+   <h1 class="title" id="gameTitle">Animal Addition Adventure!</h1>
+   <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+   </div>
+   <div id="gameScreen">
+    <div class="question-area">
+     <div class="question-text" id="questionText"></div>
+     <div class="animals-display" id="animalsDisplay"></div>
+     <div class="number-bonds hidden" id="numberBonds"></div>
+     <div class="answer-buttons" id="answerButtons"></div>
+     <div class="feedback" id="feedback"></div>
+    </div>
+   </div>
+   <div id="overlay" class="overlay hidden"></div>
+   
+   <div id="mysteryBox" class="mystery-box hidden">
+    <h3 id="mysteryTitle">Find the Trophy! 🏆</h3>
+    <div class="mystery-gifts-container" id="mysteryGiftsContainer">
+        <!-- Boxes will be injected here via JS -->
+    </div>
+    <div id="mysteryResult" class="mystery-message">Watch closely...</div>
+   </div>
+
+   <div id="celebrationScreen" class="celebration hidden">
+    <h2>You are an Animal Addition Superstar!</h2>
+    <div style="font-size: 3em; margin: 20px 0;">
+     🐶💃🐱🕺🐘💃🐸🕺
+    </div><button class="action-btn" id="playAgainBtn">Play Again!</button>
+   </div>
+  </div>
+  <script>
+        const animals = ['🐶', '🐱', '🐘', '🐸', '🦁', '🐰', '🐼', '🐯'];
+        const animalNames = ['dogs', 'cats', 'elephants', 'frogs', 'lions', 'rabbits', 'pandas', 'tigers'];
+        const WIN_ITEM = '🏆';
+        const LOSE_ITEM = '💨'; 
+        
+        let currentQuestion = 0;
+        let currentStep = 1;
+        let animal1, animal2, count1, count2, correctAnswer;
+        let currentSpeechText = "";
+        
+        // --- SHELL GAME VARIABLES ---
+        let boxes = []; 
+        const BOX_SPACING = 110; 
+        
+        let config = {
+            game_title: "Animal Addition Adventure!",
+            encouragement_text: "Fantastic! You got it right!"
+        };
+
+        const defaultConfig = {
+            game_title: "Animal Addition Adventure!",
+            encouragement_text: "Fantastic! You got it right!"
+        };
+
+        // --- AUDIO SYSTEM (Cheerful Sounds) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playTone(freq, type, duration, startTime, volume = 0.2) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start(startTime);
+            gain.gain.setValueAtTime(volume, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            osc.stop(startTime + duration);
+        }
+
+        function playCheer() {
+            const now = audioCtx.currentTime;
+            playTone(523.25, 'sine', 0.3, now);       // C5
+            playTone(659.25, 'sine', 0.3, now + 0.1); // E5
+            playTone(783.99, 'sine', 0.4, now + 0.2); // G5
+        }
+
+        function playCorrectMath() {
+            const now = audioCtx.currentTime;
+            playTone(523.25, 'triangle', 0.1, now, 0.1);
+            playTone(1046.50, 'sine', 0.4, now + 0.05, 0.3); // High C
+        }
+
+        function playWrong() {
+            const now = audioCtx.currentTime;
+            playTone(300, 'sawtooth', 0.3, now, 0.1);
+            playTone(200, 'sawtooth', 0.4, now + 0.2, 0.1);
+        }
+
+        function playShuffleSound() {
+            const now = audioCtx.currentTime;
+            playTone(400, 'square', 0.05, now, 0.05);
+        }
+
+        function playFanfare() {
+            const now = audioCtx.currentTime;
+            playTone(523.25, 'triangle', 0.2, now);       // C
+            playTone(659.25, 'triangle', 0.2, now + 0.15); // E
+            playTone(783.99, 'triangle', 0.2, now + 0.30); // G
+            playTone(1046.50, 'triangle', 0.8, now + 0.45); // High C
+        }
+
+        // --- GAME LOGIC ---
+
+        function startNewQuestion() {
+            currentStep = 1;
+            const indices = [];
+            while (indices.length < 2) {
+                const idx = Math.floor(Math.random() * animals.length);
+                if (!indices.includes(idx)) indices.push(idx);
+            }
+            animal1 = animals[indices[0]];
+            animal2 = animals[indices[1]];
+            
+            do {
+                count1 = Math.floor(Math.random() * 10) + 1;
+                count2 = Math.floor(Math.random() * 10) + 1;
+            } while (count1 + count2 > 20);
+
+            updateProgress();
+            showStep1();
+        }
+
+        function showStep1() {
+            currentSpeechText = `How many ${animalNames[animals.indexOf(animal1)]} do you see?`;
+            const questionHtml = `
+                <span>${currentSpeechText}</span>
+                <button class="listen-btn" onclick="speakQuestion()">🔊</button>
+            `;
+            document.getElementById('questionText').innerHTML = questionHtml;
+            document.getElementById('animalsDisplay').innerHTML = animal1.repeat(count1);
+            document.getElementById('numberBonds').classList.add('hidden');
+            correctAnswer = count1;
+            createAnswerButtons();
+        }
+
+        function showStep2() {
+            currentSpeechText = `How many ${animalNames[animals.indexOf(animal2)]} do you see?`;
+            const questionHtml = `
+                <span>${currentSpeechText}</span>
+                <button class="listen-btn" onclick="speakQuestion()">🔊</button>
+            `;
+            document.getElementById('questionText').innerHTML = questionHtml;
+            document.getElementById('animalsDisplay').innerHTML = animal2.repeat(count2);
+            correctAnswer = count2;
+            createAnswerButtons();
+        }
+
+        function showStep3() {
+            currentSpeechText = 'How many animals altogether?';
+            const questionHtml = `
+                <span>${currentSpeechText}</span>
+                <button class="listen-btn" onclick="speakQuestion()">🔊</button>
+            `;
+            document.getElementById('questionText').innerHTML = questionHtml;
+            document.getElementById('animalsDisplay').innerHTML = 
+                `${animal1.repeat(count1)}<span class="plus-sign">+</span>${animal2.repeat(count2)}`;
+            
+            const bondsHtml = `
+                <div class="bonds-top">
+                    <div class="bond-circle part-circle">${count1}</div>
+                    <div class="bond-circle part-circle">${count2}</div>
+                </div>
+                <div class="bond-connector"></div>
+                <div class="bond-circle whole-circle">?</div>
+            `;
+            document.getElementById('numberBonds').innerHTML = bondsHtml;
+            document.getElementById('numberBonds').classList.remove('hidden');
+            
+            correctAnswer = count1 + count2;
+            createAnswerButtons();
+        }
+
+        function createAnswerButtons() {
+            const buttons = [];
+            buttons.push(correctAnswer);
+            while (buttons.length < 3) {
+                let wrong = correctAnswer + Math.floor(Math.random() * 6) - 3;
+                if (wrong > 0 && wrong !== correctAnswer && !buttons.includes(wrong)) {
+                    buttons.push(wrong);
+                }
+            }
+            buttons.sort(() => Math.random() - 0.5);
+            
+            const container = document.getElementById('answerButtons');
+            container.innerHTML = '';
+            buttons.forEach(num => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = num;
+                btn.onclick = () => checkAnswer(num);
+                container.appendChild(btn);
+            });
+            document.getElementById('feedback').textContent = '';
+        }
+
+        function checkAnswer(selected) {
+            const feedback = document.getElementById('feedback');
+            if (selected === correctAnswer) {
+                playCorrectMath(); 
+                feedback.textContent = config.encouragement_text || defaultConfig.encouragement_text;
+                feedback.className = 'feedback correct';
+                
+                if (currentStep === 3) {
+                    document.querySelector('.whole-circle').textContent = correctAnswer;
+                }
+                
+                setTimeout(() => {
+                    if (currentStep < 3) {
+                        currentStep++;
+                        if (currentStep === 2) showStep2();
+                        else if (currentStep === 3) showStep3();
+                    } else {
+                        initMysteryGame(); 
+                    }
+                }, 1500);
+            } else {
+                playWrong();
+                feedback.textContent = 'Try again!';
+                feedback.className = 'feedback incorrect';
+            }
+        }
+
+        // --- MYSTERY BOX SHELL GAME LOGIC ---
+
+        function initMysteryGame() {
+            document.getElementById('overlay').classList.remove('hidden');
+            document.getElementById('mysteryBox').classList.remove('hidden');
+            document.getElementById('mysteryResult').textContent = "Watch carefully!";
+            document.getElementById('mysteryTitle').textContent = "Find the Trophy! 🏆";
+            
+            const container = document.getElementById('mysteryGiftsContainer');
+            container.innerHTML = '';
+            boxes = [];
+            
+            const trophyIndex = Math.floor(Math.random() * 3); 
+
+            for (let i = 0; i < 3; i++) {
+                const boxEl = document.createElement('div');
+                boxEl.className = 'mystery-gift disabled'; 
+                boxEl.textContent = '🎁';
+                
+                // Position logic
+                const offset = (i - 1) * BOX_SPACING;
+                boxEl.style.left = `calc(50% + ${offset}px - 40px)`; 
+                
+                container.appendChild(boxEl);
+                
+                boxes.push({
+                    id: i,
+                    currentPos: i, // 0=left, 1=center, 2=right
+                    hasTrophy: (i === trophyIndex),
+                    element: boxEl
+                });
+            }
+
+            // 2. Reveal Phase
+            setTimeout(() => {
+                revealContents(true);
+                // 3. Hide and Start Shuffle after 1.5s
+                setTimeout(() => {
+                    revealContents(false);
+                    document.getElementById('mysteryResult').textContent = "Shuffling...";
+                    startShuffling(5); // 5 swaps
+                }, 1500);
+            }, 500);
+        }
+
+        function revealContents(show) {
+            boxes.forEach(box => {
+                if (show) {
+                    box.element.textContent = box.hasTrophy ? WIN_ITEM : '';
+                    if (!box.hasTrophy) box.element.style.background = 'rgba(0,0,0,0.05)';
+                } else {
+                    box.element.textContent = '🎁';
+                    box.element.style.background = 'rgba(255, 107, 157, 0.1)';
+                }
+            });
+            if(show && boxes.some(b => b.hasTrophy)) playCheer();
+        }
+
+        function startShuffling(swapsRemaining) {
+            if (swapsRemaining <= 0) {
+                // Done shuffling
+                enableSelection();
+                return;
+            }
+
+            // Pick 2 distinct random indices (positions 0, 1, 2) to swap
+            let posA = Math.floor(Math.random() * 3);
+            let posB = Math.floor(Math.random() * 3);
+            while (posA === posB) { posB = Math.floor(Math.random() * 3); }
+
+            // Find the box objects currently at these positions
+            let boxA = boxes.find(b => b.currentPos === posA);
+            let boxB = boxes.find(b => b.currentPos === posB);
+
+            // Swap their logical positions
+            boxA.currentPos = posB;
+            boxB.currentPos = posA;
+
+            // Update visual positions
+            const offsetA = (boxA.currentPos - 1) * BOX_SPACING;
+            const offsetB = (boxB.currentPos - 1) * BOX_SPACING;
+
+            playShuffleSound();
+            
+            boxA.element.style.left = `calc(50% + ${offsetA}px - 40px)`;
+            boxB.element.style.left = `calc(50% + ${offsetB}px - 40px)`;
+
+            // Wait for transition to finish before next swap
+            // Transition is 0.6s, so wait 0.7s
+            setTimeout(() => {
+                startShuffling(swapsRemaining - 1);
+            }, 700); 
+        }
+
+        function enableSelection() {
+            document.getElementById('mysteryResult').textContent = "Where is the trophy?";
+            boxes.forEach(box => {
+                box.element.classList.remove('disabled');
+                box.element.onclick = () => checkMysteryChoice(box);
+            });
+        }
+
+        function checkMysteryChoice(box) {
+            // Disable all to prevent double clicks
+            boxes.forEach(b => b.element.classList.add('disabled'));
+
+            if (box.hasTrophy) {
+                box.element.textContent = WIN_ITEM;
+                playFanfare();
+                document.getElementById('mysteryResult').textContent = "You found it! 🎉";
+                document.getElementById('mysteryTitle').textContent = "WINNER!";
+                
+                setTimeout(() => {
+                    closeMysteryBox(true);
+                }, 2000);
+            } else {
+                box.element.textContent = LOSE_ITEM;
+                playWrong();
+                document.getElementById('mysteryResult').textContent = "Oh no! Empty!";
+                
+                // Show where it actually was
+                setTimeout(() => {
+                    const actualBox = boxes.find(b => b.hasTrophy);
+                    actualBox.element.textContent = WIN_ITEM;
+                    actualBox.element.style.background = "#ffffaa";
+                    setTimeout(() => {
+                        closeMysteryBox(false); // Move on anyway
+                    }, 2000);
+                }, 800);
+            }
+        }
+
+        function closeMysteryBox(won) {
+            document.getElementById('overlay').classList.add('hidden');
+            document.getElementById('mysteryBox').classList.add('hidden');
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion >= 5) {
+                showCelebration();
+            } else {
+                document.getElementById('gameScreen').classList.remove('hidden');
+                startNewQuestion();
+            }
+        }
+
+        function showCelebration() {
+            playCheer();
+            document.getElementById('celebrationScreen').classList.remove('hidden');
+        }
+
+        function restartGame() {
+            currentQuestion = 0;
+            document.getElementById('celebrationScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            startNewQuestion();
+        }
+
+        function updateProgress() {
+            const progress = (currentQuestion / 5) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function speakQuestion() {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(currentSpeechText);
+                utterance.rate = 0.8;
+                utterance.pitch = 1.2;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+        document.getElementById('playAgainBtn').onclick = restartGame;
+
+        document.body.addEventListener('click', function() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }, {once:true});
+
+        startNewQuestion();
+    </script>
+ </body>
+</html>
