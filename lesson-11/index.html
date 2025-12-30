@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="en">
+ <head>
+   <link rel="stylesheet" href="../assets/brand.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choose the Correct Equation!</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #FFF8E1 0%, #E8F5E8 50%, #F3E5F5 100%);
+            min-height: 100%;
+            overflow-x: hidden;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100%;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            color: #FF6B35;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .worksheet-container {
+            background: white;
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: 3px solid #FFB74D;
+        }
+
+        .worksheet-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .objects-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .object-groups {
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .object-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            max-width: 300px;
+        }
+
+        .object-item {
+            font-size: 3rem;
+            animation: wiggle 3s infinite;
+            transition: transform 0.3s ease;
+        }
+
+        .object-item:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(3deg); }
+            75% { transform: rotate(-3deg); }
+        }
+
+        .plus-symbol {
+            font-size: 4rem;
+            color: #FF6B35;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .center-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 1.8rem;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .speaker-icon {
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        .speaker-icon:hover {
+            transform: scale(1.2);
+        }
+
+        .speaker-icon:active {
+            transform: scale(0.9);
+        }
+
+        .equations-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .equations-title {
+            font-size: 1.5rem;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        #equationsContainer {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .equation-choice {
+            background: linear-gradient(45deg, #81C784, #66BB6A);
+            color: white;
+            border: none;
+            padding: 20px 30px;
+            font-size: 1.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            min-width: 200px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            font-weight: bold;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+
+        .equation-choice:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .equation-choice.correct {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            animation: celebrate 0.6s ease;
+        }
+
+        .equation-choice.incorrect {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            animation: shake 0.6s ease;
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .feedback-message {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            min-height: 40px;
+            text-align: center;
+        }
+
+        .feedback-message.correct {
+            color: #4CAF50;
+        }
+
+        .feedback-message.incorrect {
+            color: #FF6B6B;
+        }
+
+        .gift-screen {
+            background: white;
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .gift-title {
+            font-size: 2rem;
+            color: #FF6B35;
+            margin-bottom: 30px;
+        }
+
+        .gift-boxes-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+
+        .gift-box {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(45deg, #FF6B35, #E65100);
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            animation: sparkle 2s infinite;
+        }
+
+        .gift-box:hover {
+            transform: translateY(-10px) scale(1.05);
+        }
+
+        .gift-box:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .gift-box:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .gift-box:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+            50% { box-shadow: 0 15px 35px rgba(255, 107, 53, 0.4); }
+        }
+
+        .sticker-reveal {
+            font-size: 1.5rem;
+            color: #FF6B35;
+            font-weight: bold;
+            background: linear-gradient(45deg, #FFF8E1, #E8F5E8);
+            padding: 20px 30px;
+            border-radius: 20px;
+            border: 3px solid #FF6B35;
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+            animation: pop 0.8s ease;
+            margin: 20px 0;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .celebration-screen {
+            background: linear-gradient(45deg, #FFB74D, #FF6B35);
+            color: white;
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .celebration-title {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            animation: bounce 1s infinite;
+        }
+
+        .dancing-objects {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .dancing-object {
+            font-size: 4rem;
+            animation: dance 1s infinite;
+        }
+
+        @keyframes dance {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-20px) rotate(10deg); }
+            50% { transform: translateY(0) rotate(0deg); }
+            75% { transform: translateY(-10px) rotate(-10deg); }
+        }
+
+        .next-btn {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #E0E0E0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #FFB74D;
+            animation: fall 3s infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(600px) rotate(360deg); opacity: 0; }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .worksheet-container {
+                padding: 20px;
+            }
+            
+            .object-item {
+                font-size: 2.5rem;
+            }
+            
+            .plus-symbol {
+                font-size: 3rem;
+            }
+            
+            .question-text {
+                font-size: 1.5rem;
+            }
+            
+            .equation-choice {
+                font-size: 1.5rem;
+                padding: 15px 20px;
+                min-width: 150px;
+            }
+            
+            #equationsContainer {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .object-groups {
+                flex-direction: row;
+                justify-content: center;
+            }
+            
+            .object-group {
+                max-width: 150px;
+            }
+            
+            .object-item {
+                font-size: 2rem;
+            }
+            
+            .plus-symbol {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+   <img src="../assets/logo-oodles-math.png" class="oodles-logo">
+  <div class="game-container">
+   <h1 class="game-title" id="gameTitle">Choose the Correct Equation!</h1>
+   <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+   </div><!-- Worksheet Screen -->
+   <div class="worksheet-container" id="worksheetScreen">
+    <div class="worksheet-layout"><!-- Left: Objects Section -->
+     <div class="objects-section">
+      <div class="object-groups" id="objectGroups"><!-- Objects will be populated here -->
+      </div>
+     </div><!-- Question Section -->
+     <div class="center-section">
+      <div class="question-text" id="questionText">
+       How many objects are there in total? <span class="speaker-icon" onclick="playAudio()" title="Listen to question">🔊</span>
+      </div>
+     </div><!-- Equations Section -->
+     <div class="equations-section">
+      <div class="equations-title">
+       Choose the correct equation:
+      </div>
+      <div id="equationsContainer"><!-- Equation choices will be populated here -->
+      </div>
+     </div>
+    </div>
+    <div class="feedback-message" id="feedbackMessage"></div>
+   </div><!-- Gift Screen -->
+   <div class="gift-screen hidden" id="giftScreen">
+    <h2 class="gift-title">Excellent work! Choose a mystery gift! 🎁</h2>
+    <div class="gift-boxes-container" id="giftBoxesContainer">
+     <div class="gift-box" onclick="openGift(this)">
+      🎁
+     </div>
+     <div class="gift-box" onclick="openGift(this)">
+      🎁
+     </div>
+     <div class="gift-box" onclick="openGift(this)">
+      🎁
+     </div>
+    </div>
+    <div class="sticker-reveal hidden" id="stickerReveal"></div>
+   </div><!-- Celebration Screen -->
+   <div class="celebration-screen hidden" id="celebrationScreen">
+    <h2 class="celebration-title" id="celebrationTitle">Great job! You can match equations!</h2>
+    <div class="dancing-objects"><span class="dancing-object">🎈</span> <span class="dancing-object">🍎</span> <span class="dancing-object">🚗</span> <span class="dancing-object">🌟</span> <span class="dancing-object">🎁</span> <span class="dancing-object">🦋</span> <span class="dancing-object">🍪</span> <span class="dancing-object">🌸</span>
+    </div><button class="next-btn" onclick="restartGame()"> Play Again! 🎮 </button>
+   </div>
+  </div>
+  <script>
+        // Game configuration
+        const defaultConfig = {
+            game_title: "Choose the Correct Equation!",
+            encouragement_text: "Try again!",
+            celebration_text: "Great job! You can match equations!"
+        };
+
+        // Game state
+        let currentQuestion = 0;
+        let totalQuestions = 10;
+        let gameQuestions = [];
+        let currentCorrectAnswer = '';
+
+        // Object types with cute emojis
+        const objectTypes = [
+            { emoji: '🥪', name: 'sandwich', plural: 'sandwiches' },
+            { emoji: '📚', name: 'book', plural: 'books' },
+            { emoji: '🦆', name: 'duck', plural: 'ducks' },
+            { emoji: '🍍', name: 'pineapple', plural: 'pineapples' },
+            { emoji: '🎈', name: 'balloon', plural: 'balloons' },
+            { emoji: '🍎', name: 'apple', plural: 'apples' },
+            { emoji: '🚗', name: 'car', plural: 'cars' },
+            { emoji: '🌟', name: 'star', plural: 'stars' },
+            { emoji: '🎁', name: 'gift', plural: 'gifts' },
+            { emoji: '🦋', name: 'butterfly', plural: 'butterflies' },
+            { emoji: '🍪', name: 'cookie', plural: 'cookies' },
+            { emoji: '🌸', name: 'flower', plural: 'flowers' },
+            { emoji: '🐱', name: 'cat', plural: 'cats' },
+            { emoji: '🎵', name: 'note', plural: 'notes' },
+            { emoji: '🍓', name: 'strawberry', plural: 'strawberries' },
+            { emoji: '🍊', name: 'orange', plural: 'oranges' },
+            { emoji: '🍋', name: 'lemon', plural: 'lemons' },
+            { emoji: '🍌', name: 'banana', plural: 'bananas' },
+            { emoji: '🍉', name: 'watermelon', plural: 'watermelons' },
+            { emoji: '🍇', name: 'grape', plural: 'grapes' },
+            { emoji: '🍑', name: 'peach', plural: 'peaches' },
+            { emoji: '🍒', name: 'cherry', plural: 'cherries' },
+            { emoji: '🥝', name: 'kiwi', plural: 'kiwis' },
+            { emoji: '🥭', name: 'mango', plural: 'mangos' },
+            { emoji: '🍐', name: 'pear', plural: 'pears' }
+        ];
+
+        const stickers = ['⭐', '💖', '🏆', '🎖️', '🌟', '💎', '🎊', '🎉'];
+
+        // Initialize the game
+        function initGame() {
+            generateQuestions();
+            showQuestion();
+            updateProgress();
+        }
+
+        // Generate questions for each object type
+        function generateQuestions() {
+            gameQuestions = [];
+            
+            // Shuffle object types to get random selection
+            const shuffledTypes = [...objectTypes];
+            shuffleArray(shuffledTypes);
+            
+            // Take only the number of questions we need
+            for (let i = 0; i < totalQuestions; i++) {
+                const objectType = shuffledTypes[i % shuffledTypes.length];
+                
+                // Generate numbers that sum to max 15 for better display
+                const count1 = Math.floor(Math.random() * 7) + 1; // 1-7
+                const maxCount2 = Math.min(7, 15 - count1); // Ensure total ≤ 15
+                const count2 = Math.floor(Math.random() * maxCount2) + 1; // 1-maxCount2
+                const total = count1 + count2;
+                
+                gameQuestions.push({
+                    objectType,
+                    count1,
+                    count2,
+                    total
+                });
+            }
+        }
+
+        // Show current question
+        function showQuestion() {
+            const question = gameQuestions[currentQuestion];
+            
+            // Clear previous content
+            document.getElementById('feedbackMessage').textContent = '';
+            
+            // Update question text with speaker icon
+            const questionTextElement = document.getElementById('questionText');
+            questionTextElement.innerHTML = 
+                `How many ${question.objectType.plural} are there in total? <span class="speaker-icon" onclick="playAudio()" title="Listen to question">🔊</span>`;
+            
+            // Create object groups display
+            createObjectGroups(question);
+            
+
+            
+            // Generate equation choices
+            generateEquationChoices(question);
+        }
+
+        // Create visual object groups
+        function createObjectGroups(question) {
+            const container = document.getElementById('objectGroups');
+            container.innerHTML = '';
+            
+            // First group
+            const group1 = document.createElement('div');
+            group1.className = 'object-group';
+            for (let i = 0; i < question.count1; i++) {
+                const obj = document.createElement('span');
+                obj.className = 'object-item';
+                obj.textContent = question.objectType.emoji;
+                obj.style.animationDelay = `${i * 0.1}s`;
+                group1.appendChild(obj);
+            }
+            
+            // Plus symbol
+            const plusSymbol = document.createElement('div');
+            plusSymbol.className = 'plus-symbol';
+            plusSymbol.textContent = '+';
+            
+            // Second group
+            const group2 = document.createElement('div');
+            group2.className = 'object-group';
+            for (let i = 0; i < question.count2; i++) {
+                const obj = document.createElement('span');
+                obj.className = 'object-item';
+                obj.textContent = question.objectType.emoji;
+                obj.style.animationDelay = `${(question.count1 + i) * 0.1}s`;
+                group2.appendChild(obj);
+            }
+            
+            container.appendChild(group1);
+            container.appendChild(plusSymbol);
+            container.appendChild(group2);
+        }
+
+        // Generate equation choices
+        function generateEquationChoices(question) {
+            const container = document.getElementById('equationsContainer');
+            container.innerHTML = '';
+            
+            const correctEquation = `${question.count1} + ${question.count2} = ${question.total}`;
+            currentCorrectAnswer = correctEquation;
+            
+            // Generate wrong equations
+            const wrongEquations = [];
+            
+            // Wrong equation 1: different first number
+            let wrongCount1 = question.count1;
+            while (wrongCount1 === question.count1) {
+                wrongCount1 = Math.floor(Math.random() * 7) + 1;
+            }
+            wrongEquations.push(`${wrongCount1} + ${question.count2} = ${wrongCount1 + question.count2}`);
+            
+            // Wrong equation 2: different second number
+            let wrongCount2 = question.count2;
+            while (wrongCount2 === question.count2) {
+                wrongCount2 = Math.floor(Math.random() * 7) + 1;
+            }
+            wrongEquations.push(`${question.count1} + ${wrongCount2} = ${question.count1 + wrongCount2}`);
+            
+            // Combine and shuffle equations
+            const allEquations = [correctEquation, ...wrongEquations];
+            shuffleArray(allEquations);
+            
+            // Create equation buttons
+            allEquations.forEach(equation => {
+                const button = document.createElement('button');
+                button.className = 'equation-choice';
+                button.textContent = equation;
+                button.onclick = () => checkAnswer(equation, button);
+                container.appendChild(button);
+            });
+        }
+
+        // Shuffle array function
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Check answer
+        function checkAnswer(selectedEquation, button) {
+            const feedbackMessage = document.getElementById('feedbackMessage');
+            const allButtons = document.querySelectorAll('.equation-choice');
+            
+            // Disable all buttons
+            allButtons.forEach(btn => btn.disabled = true);
+            
+            // Play button click sound
+            playInteractionSound('click');
+            
+            if (selectedEquation === currentCorrectAnswer) {
+                button.classList.add('correct');
+                feedbackMessage.textContent = '🎉 Perfect! That\'s the correct equation!';
+                feedbackMessage.className = 'feedback-message correct';
+                
+
+                
+                // Play success sound
+                playInteractionSound('success');
+                
+                // Create confetti effect
+                createConfetti();
+                
+                setTimeout(() => {
+                    showGiftScreen();
+                }, 2000);
+            } else {
+                button.classList.add('incorrect');
+                const config = window.elementSdk?.config || defaultConfig;
+                feedbackMessage.textContent = config.encouragement_text || defaultConfig.encouragement_text;
+                feedbackMessage.className = 'feedback-message incorrect';
+                
+                // Play incorrect sound
+                playInteractionSound('incorrect');
+                
+                setTimeout(() => {
+                    // Re-enable buttons and reset
+                    allButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('incorrect');
+                    });
+                    feedbackMessage.textContent = '';
+                }, 1500);
+            }
+        }
+
+        // Show gift screen
+        function showGiftScreen() {
+            document.getElementById('worksheetScreen').classList.add('hidden');
+            document.getElementById('giftScreen').classList.remove('hidden');
+            
+            // Reset all gift boxes
+            const giftBoxes = document.querySelectorAll('.gift-box');
+            giftBoxes.forEach(box => {
+                box.textContent = '🎁';
+                box.style.transform = '';
+                box.style.pointerEvents = 'auto';
+                box.style.opacity = '1';
+                box.classList.remove('opened');
+            });
+            
+            document.getElementById('stickerReveal').classList.add('hidden');
+        }
+
+        // Open gift box
+        function openGift(clickedBox) {
+            // Prevent multiple clicks by checking if already opened
+            if (clickedBox.classList.contains('opened')) return;
+            
+            // Mark this box as opened
+            clickedBox.classList.add('opened');
+            
+            // Disable all boxes
+            const allBoxes = document.querySelectorAll('.gift-box');
+            allBoxes.forEach(box => {
+                box.style.pointerEvents = 'none';
+            });
+            
+            // Play gift opening sound
+            createFunSoundEffect('gift');
+            
+            // Show selected sticker
+            const selectedSticker = stickers[Math.floor(Math.random() * stickers.length)];
+            clickedBox.textContent = selectedSticker;
+            clickedBox.style.transform = 'scale(1.3) rotate(10deg)';
+            
+            // Make other boxes fade out
+            allBoxes.forEach(box => {
+                if (box !== clickedBox) {
+                    box.style.opacity = '0.3';
+                    box.style.transform = 'scale(0.9)';
+                }
+            });
+            
+            // Show sticker reveal
+            const stickerReveal = document.getElementById('stickerReveal');
+            stickerReveal.innerHTML = `🎉 You earned a <span style="font-size: 2rem;">${selectedSticker}</span> ${getStickerName(selectedSticker)}! 🎉`;
+            stickerReveal.classList.remove('hidden');
+            
+            // Auto-advance to next question
+            setTimeout(() => {
+                continueGame();
+            }, 3000);
+        }
+
+        // Continue to next question or end game
+        function continueGame() {
+            document.getElementById('giftScreen').classList.add('hidden');
+            
+            currentQuestion++;
+            updateProgress();
+            
+            if (currentQuestion < totalQuestions) {
+                document.getElementById('worksheetScreen').classList.remove('hidden');
+                showQuestion();
+            } else {
+                showCelebration();
+            }
+        }
+
+        // Show celebration screen
+        function showCelebration() {
+            document.getElementById('celebrationScreen').classList.remove('hidden');
+            
+            // Create confetti effect
+            createConfetti();
+            
+            // Update celebration text
+            const config = window.elementSdk?.config || defaultConfig;
+            document.getElementById('celebrationTitle').textContent = 
+                config.celebration_text || defaultConfig.celebration_text;
+        }
+
+        // Create confetti animation
+        function createConfetti() {
+            const colors = ['#FFB74D', '#FF6B35', '#4CAF50', '#8BC34A', '#81C784'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 2 + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 100);
+            }
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = (currentQuestion / totalQuestions) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // Play audio using Web Speech API
+        function playAudio() {
+            const question = gameQuestions[currentQuestion];
+            
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance();
+                
+                utterance.text = `How many ${question.objectType.plural} are there in total? Choose the correct equation!`;
+                
+                // Set speech properties for children
+                utterance.rate = 0.8;
+                utterance.pitch = 1.2;
+                utterance.volume = 1;
+                
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Play congratulatory audio
+        function playCongratulatoryAudio(sticker) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance();
+                
+                const messages = [
+                    `Fantastic! You earned a ${getStickerName(sticker)}!`,
+                    `Amazing work! You got a beautiful ${getStickerName(sticker)}!`,
+                    `Excellent job! Your reward is a shiny ${getStickerName(sticker)}!`
+                ];
+                
+                utterance.text = messages[Math.floor(Math.random() * messages.length)];
+                utterance.rate = 0.9;
+                utterance.pitch = 1.3;
+                utterance.volume = 1;
+                
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Play interaction sounds
+        function playInteractionSound(type) {
+            // Create fun sound effects using Web Audio API
+            createFunSoundEffect(type);
+        }
+
+        // Create fun sound effects using Web Audio API
+        function createFunSoundEffect(type) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                switch(type) {
+                    case 'click':
+                        // Fun bounce sound
+                        playBeep(audioContext, 1000, 0.08, 0.4, 'triangle');
+                        setTimeout(() => playBeep(audioContext, 1200, 0.08, 0.3, 'triangle'), 80);
+                        break;
+                    case 'success':
+                        // Super happy celebratory melody
+                        playBeep(audioContext, 523, 0.12, 0.5, 'square'); // C
+                        setTimeout(() => playBeep(audioContext, 659, 0.12, 0.5, 'square'), 120); // E
+                        setTimeout(() => playBeep(audioContext, 784, 0.12, 0.5, 'square'), 240); // G
+                        setTimeout(() => playBeep(audioContext, 1047, 0.25, 0.6, 'square'), 360); // C high
+                        break;
+                    case 'incorrect':
+                        // Playful "oops" sound
+                        playBeep(audioContext, 400, 0.15, 0.4, 'sawtooth');
+                        setTimeout(() => playBeep(audioContext, 350, 0.15, 0.35, 'sawtooth'), 120);
+                        setTimeout(() => playBeep(audioContext, 300, 0.2, 0.3, 'sawtooth'), 240);
+                        break;
+                    case 'gift':
+                        // Magical sparkle extravaganza
+                        for (let i = 0; i < 8; i++) {
+                            setTimeout(() => {
+                                const freq = 800 + Math.random() * 600;
+                                playBeep(audioContext, freq, 0.1, 0.4, 'sine');
+                            }, i * 40);
+                        }
+                        // Add a nice finish
+                        setTimeout(() => playBeep(audioContext, 1200, 0.3, 0.5, 'triangle'), 320);
+                        break;
+                }
+            } catch (error) {
+                // Fallback if Web Audio API is not supported
+                console.log('Audio not supported');
+            }
+        }
+
+        // Play a beep sound with specified frequency, duration, volume, and wave type
+        function playBeep(audioContext, frequency, duration, volume, waveType = 'sine') {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.type = waveType;
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // Get sticker name
+        function getStickerName(emoji) {
+            const stickerNames = {
+                '⭐': 'star',
+                '💖': 'heart',
+                '🏆': 'trophy',
+                '🎖️': 'medal',
+                '🌟': 'shining star',
+                '💎': 'diamond',
+                '🎊': 'celebration',
+                '🎉': 'party'
+            };
+            return stickerNames[emoji] || 'special prize';
+        }
+
+        // Restart game
+        function restartGame() {
+            playInteractionSound('click');
+            
+            currentQuestion = 0;
+            document.getElementById('celebrationScreen').classList.add('hidden');
+            document.getElementById('worksheetScreen').classList.remove('hidden');
+            initGame();
+        }
+
+        // Element SDK integration
+        async function onConfigChange(config) {
+            document.getElementById('gameTitle').textContent = 
+                config.game_title || defaultConfig.game_title;
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [
+                    {
+                        get: () => config.primary_color || "#FF6B35",
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ primary_color: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.secondary_color || "#4CAF50",
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ secondary_color: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.accent_color || "#FFB74D",
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ accent_color: value });
+                            }
+                        }
+                    }
+                ],
+                borderables: [],
+                fontEditable: {
+                    get: () => config.font_family || "Comic Sans MS",
+                    set: (value) => {
+                        if (window.elementSdk) {
+                            window.elementSdk.setConfig({ font_family: value });
+                        }
+                    }
+                },
+                fontSizeable: {
+                    get: () => config.font_size || 16,
+                    set: (value) => {
+                        if (window.elementSdk) {
+                            window.elementSdk.setConfig({ font_size: value });
+                        }
+                    }
+                }
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["game_title", config.game_title || defaultConfig.game_title],
+                ["encouragement_text", config.encouragement_text || defaultConfig.encouragement_text],
+                ["celebration_text", config.celebration_text || defaultConfig.celebration_text]
+            ]);
+        }
+
+        // Initialize Element SDK
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities,
+                mapToEditPanelValues
+            });
+        }
+
+        // Start the game when page loads
+        window.addEventListener('load', initGame);
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b5e702541234625',t:'MTc2NzA2NTIxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
