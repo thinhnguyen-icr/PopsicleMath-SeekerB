@@ -1,15 +1,15 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
 <head>
   <link rel="stylesheet" href="../assets/brand.css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Lesson 15 • Review HK1 (Lessons 01–14)</title>
+  <title>Lesson 15 • Review HK1</title>
   <style>
     :root{
       --bg1:#eaf3ff;
       --bg2:#f6fff2;
-      --card: rgba(255,255,255,.92);
+      --card: rgba(255,255,255,.95);
       --border: rgba(148,163,184,.25);
       --text:#0f172a;
       --muted:#64748b;
@@ -24,7 +24,7 @@
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      font-family: "Comic Sans MS", "Chalkboard SE", system-ui, -apple-system, sans-serif; /* Kid friendly font */
       color:var(--text);
       min-height:100vh;
       background:
@@ -32,6 +32,7 @@
         radial-gradient(900px 520px at 88% 12%, rgba(6,182,212,.16), transparent 55%),
         radial-gradient(700px 420px at 70% 82%, rgba(34,197,94,.10), transparent 60%),
         linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow-x:hidden;
     }
     .wrap{
       max-width: 1100px;
@@ -48,6 +49,8 @@
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       overflow:hidden;
+      position:relative;
+      z-index: 2;
     }
     header{
       padding: 14px 16px;
@@ -58,11 +61,7 @@
       justify-content:space-between;
       gap:12px;
     }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
+    .brand{ display:flex; align-items:center; gap:12px; }
     .logo{
       width:42px;height:42px;border-radius:14px;
       display:grid;place-items:center;
@@ -105,11 +104,15 @@
       gap:8px;
       user-select:none;
     }
-    .btn:hover{transform: translateY(-1px)}
+    .btn:hover{transform: translateY(-2px) scale(1.02);}
+    .btn:active{transform: translateY(0px) scale(0.98);}
     .btn.primary{
       border-color: rgba(37,99,235,.35);
       background: linear-gradient(135deg, rgba(37,99,235,.14), rgba(6,182,212,.12));
-      font-weight:800;
+      font-weight:800; color: var(--accent);
+    }
+    .btn.info{
+      background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-weight:700;
     }
     .btn.ghost{ background: rgba(255,255,255,.55); }
 
@@ -184,9 +187,22 @@
       border-radius: 18px;
       padding: 14px;
       box-shadow: var(--shadow2);
+      position: relative;
     }
-    .prompt{ font-size:16px; font-weight:900; line-height:1.25; margin: 0 0 10px; }
-    .hint{ color: var(--muted); font-size: 13px; margin-top: 6px; line-height:1.4; }
+    .prompt-row{
+      display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px;
+    }
+    .prompt{ font-size:18px; font-weight:900; line-height:1.25; flex:1; margin:0;}
+    .speak-btn{
+      background: #e0f2fe; border: 1px solid #bae6fd;
+      color: #0284c7; border-radius: 50%; width: 32px; height: 32px;
+      display:grid; place-items:center; cursor:pointer; font-size:16px;
+      transition: .2s;
+    }
+    .speak-btn:hover{ transform: scale(1.1); background: #bae6fd; }
+    
+    .hint{ color: var(--muted); font-size: 14px; margin-top: 8px; line-height:1.4; font-style:italic; }
+    
     .choices{
       margin-top: 12px;
       display:grid;
@@ -194,156 +210,182 @@
       gap: 10px;
     }
     .choice{
-      border:1px solid rgba(148,163,184,.25);
+      border:2px solid rgba(148,163,184,.25);
       background: rgba(255,255,255,.90);
       border-radius: 16px;
       padding: 12px 10px;
       cursor:pointer;
-      box-shadow: 0 10px 22px rgba(15,23,42,.08);
+      box-shadow: 0 6px 0 rgba(148,163,184,.15); /* Chunky button feel */
       transition:.15s;
       display:flex;
       align-items:center;
       justify-content:center;
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 950;
       user-select:none;
-      min-height: 54px;
+      min-height: 60px;
+      color: var(--text);
     }
-    .choice:hover{ transform: translateY(-1px); }
-    .choice.correct{ border-color: rgba(22,163,74,.40); outline: 3px solid rgba(22,163,74,.15); }
-    .choice.wrong{ border-color: rgba(239,68,68,.40); outline: 3px solid rgba(239,68,68,.12); }
+    .choice:hover{ transform: translateY(-2px); box-shadow: 0 8px 0 rgba(148,163,184,.15); }
+    .choice:active{ transform: translateY(2px); box-shadow: 0 2px 0 rgba(148,163,184,.15); }
+    
+    .choice.correct{ 
+      border-color: var(--ok); color: var(--ok); background: #f0fdf4;
+      box-shadow: 0 6px 0 #bbf7d0;
+    }
+    .choice.wrong{ 
+      border-color: var(--bad); color: var(--bad); background: #fef2f2;
+      box-shadow: 0 6px 0 #fecaca;
+    }
 
     .two-cols{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items:center; }
 
+    /* Count items grid - Updated color */
+    .count-grid{
+      display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+      padding: 14px; 
+      background: #fffbeb; /* Light yellow bg */
+      border: 2px solid #fde68a; /* Yellow border */
+      border-radius:16px;
+    }
+    .count-item{ font-size: 32px; animation: popIn .4s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards; }
+    @keyframes popIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+
     /* Clock */
     .clock{
-      width: 220px; height: 220px; margin: 4px auto;
-      border-radius: 999px;
+      width: 200px; height: 200px; margin: 4px auto;
+      border-radius: 50%;
       background: rgba(255,255,255,.95);
-      border: 10px solid rgba(37,99,235,.18);
+      border: 8px solid rgba(37,99,235,.18);
       box-shadow: 0 16px 32px rgba(15,23,42,.10);
       position:relative;
     }
     .clock .center{
-      width:12px;height:12px;border-radius:999px;
+      width:12px;height:12px;border-radius:50%;
       background:#0f172a;
       position:absolute; left:50%; top:50%;
       transform: translate(-50%,-50%);
+      z-index: 5;
     }
-    .hand{ position:absolute; left:50%; top:50%; transform-origin: bottom center; border-radius: 999px; }
+    .hand{ position:absolute; left:50%; top:50%; transform-origin: bottom center; border-radius: 999px; z-index: 4;}
     .hand.minute{
-      width:6px; height: 86px; background: rgba(6,182,212,.95);
+      width:6px; height: 75px; background: rgba(6,182,212,.95);
       transform: translate(-50%,-100%) rotate(0deg);
     }
     .hand.hour{
-      width:8px; height: 62px; background: rgba(37,99,235,.95);
+      width:8px; height: 50px; background: rgba(37,99,235,.95);
       transform: translate(-50%,-100%) rotate(0deg);
     }
     .tick{
       position:absolute; left:50%; top:50%;
       width:2px; height:10px;
       background: rgba(15,23,42,.25);
-      transform-origin: center calc(100% + 86px);
+      transform-origin: center calc(100% + 75px);
       border-radius: 6px;
     }
     .num{
-      position:absolute;
-      left:50%; top:50%;
+      position:absolute; left:50%; top:50%;
       transform: translate(-50%,-50%);
-      font-weight: 900;
-      color: rgba(15,23,42,.75);
-      font-size: 14px;
+      font-weight: 900; color: rgba(15,23,42,.75); font-size: 14px;
     }
 
     /* Ten frame */
     .tenframe{
-      width: 260px; margin: 0 auto;
-      display:grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      padding: 12px;
+      width: 100%; max-width: 240px; margin: 0 auto;
+      display:grid; grid-template-columns: repeat(5, 1fr);
+      gap: 6px; padding: 8px;
       border:1px solid rgba(148,163,184,.22);
-      border-radius: 18px;
-      background: rgba(255,255,255,.88);
-      box-shadow: var(--shadow2);
+      border-radius: 12px; background: #fff;
     }
     .cell{
-      width: 100%;
-      aspect-ratio: 1/1;
-      border-radius: 14px;
-      border:1px dashed rgba(148,163,184,.45);
-      display:grid;place-items:center;
-      font-size: 18px;
-      font-weight:900;
-      color: rgba(15,23,42,.85);
-      background: rgba(255,255,255,.70);
+      aspect-ratio: 1/1; border-radius: 8px;
+      border:1px dashed #cbd5e1;
+      display:grid; place-items:center;
     }
-    .dot{ width: 18px;height:18px;border-radius:999px; background: rgba(34,197,94,.85); box-shadow: 0 10px 18px rgba(34,197,94,.18); }
-    .dot.blue{ background: rgba(37,99,235,.85); box-shadow: 0 10px 18px rgba(37,99,235,.18); }
+    .dot{ width: 16px;height:16px;border-radius:50%; background: #22c55e; box-shadow: 0 4px 0 #15803d; }
+    .dot.blue{ background: #3b82f6; box-shadow: 0 4px 0 #1d4ed8; }
 
     /* Picture graph */
     .graph{
-      width: 280px; margin: 0 auto; padding: 12px;
-      border:1px solid rgba(148,163,184,.22);
-      border-radius: 18px;
-      background: rgba(255,255,255,.88);
-      box-shadow: var(--shadow2);
+      width: 100%; padding: 10px;
+      border-radius: 16px; background: #fff;
+      border: 1px solid #e2e8f0;
     }
     .gline{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding: 8px 6px;
-      border-radius: 14px;
-      background: rgba(255,255,255,.78);
-      border:1px solid rgba(148,163,184,.18);
-      margin-bottom: 8px;
+      padding: 6px; border-bottom: 1px solid #f1f5f9;
     }
-    .gleft{ display:flex; align-items:center; gap:10px; font-weight:900; }
-    .icons{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+    .gline:last-child{ border-bottom:none; }
+    .icons{ display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
     .miniIcon{
-      width:18px;height:18px;border-radius: 6px;
-      border:1px solid rgba(148,163,184,.18);
-      background: linear-gradient(135deg, rgba(37,99,235,.18), rgba(6,182,212,.10));
-      display:grid;place-items:center;
-      font-size: 12px;
+      width:20px;height:20px;border-radius: 4px;
+      background: #eff6ff; color: #2563eb;
+      display:grid;place-items:center; font-size: 12px;
     }
 
     .feedback{
       margin-top: 10px;
-      padding: 10px 12px;
+      padding: 12px;
       border-radius: 16px;
-      border:1px solid rgba(148,163,184,.22);
-      background: rgba(255,255,255,.78);
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      border:2px solid transparent;
+      background: #fff;
+      display:flex; flex-direction:column; gap:12px;
+      animation: slideUp .3s ease;
     }
-    .msg{ font-weight:900; font-size: 14px; }
-    .msg.ok{ color: var(--ok); }
-    .msg.bad{ color: var(--bad); }
+    .feedback-row{
+      display:flex; justify-content:space-between; align-items:center; width:100%;
+    }
+    .feedback.good { border-color: #bbf7d0; background: #f0fdf4; }
+    .feedback.bad { border-color: #fecaca; background: #fef2f2; }
+    
+    .explain-box{
+      background: #fff; border: 1px dashed #cbd5e1; border-radius: 12px;
+      padding: 12px; font-size: 14px; line-height:1.4; color: #334155;
+      display:none;
+    }
+
+    @keyframes slideUp{ from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1}}
+
+    .msg{ font-weight:900; font-size: 15px; }
     .nextbtn{
-      border:1px solid rgba(148,163,184,.30);
-      background: rgba(255,255,255,.92);
-      border-radius: 999px;
-      padding: 8px 12px;
-      cursor:pointer;
-      font-weight:900;
-      box-shadow: var(--shadow2);
+      border:none; background: var(--text); color: #fff;
+      border-radius: 999px; padding: 10px 20px;
+      cursor:pointer; font-weight:bold; font-size:14px;
+      box-shadow: 0 4px 10px rgba(0,0,0,.2);
+      transition:.2s;
     }
-    .nextbtn:hover{ transform: translateY(-1px); }
+    .nextbtn:hover{ transform: scale(1.05); }
 
     .end{
-      display:grid;
-      place-items:center;
-      text-align:center;
-      height:100%;
-      padding: 20px;
+      display:grid; place-items:center; text-align:center;
+      height:100%; padding: 20px;
     }
-    .end h2{ margin: 8px 0 6px; }
-    .end p{ color: var(--muted); margin: 0 0 12px; line-height:1.5; }
+    
+    /* Bubble Game Overlay */
+    #bonusGame {
+        position: absolute; top:0; left:0; width:100%; height:100%;
+        background: rgba(255,255,255,0.95);
+        z-index: 10; display:none; flex-direction:column;
+    }
+    #bonusCanvas {
+        flex:1; width:100%; cursor: crosshair; touch-action: none;
+    }
+    .bonus-header {
+        padding: 10px 16px; background: #fff; border-bottom:1px solid #eee;
+        display:flex; justify-content:space-between; align-items:center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .timer-badge{
+      background: #ef4444; color: white; padding: 4px 10px;
+      border-radius: 99px; font-weight: bold; font-size: 14px;
+      box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+    }
 
     @media (max-width: 980px){
       .wrap{ grid-template-columns: 1fr; }
       .choices{ grid-template-columns: 1fr; }
       .two-cols{ grid-template-columns: 1fr; }
-      .clock{ width: 200px; height: 200px; }
+      .clock{ width: 180px; height: 180px; }
     }
   </style>
 </head>
@@ -358,7 +400,7 @@
           <div class="logo">📚</div>
           <div class="t">
             <b>Lesson 15 • Review HK1</b>
-            <span>Ôn tập Lessons 01–14</span>
+            <span>Semester 1 Review (L1–L14)</span>
           </div>
         </div>
         <div class="chips">
@@ -368,31 +410,25 @@
       </header>
 
       <div class="body">
-        <div class="big">Chơi 9 câu • Ôn đủ kỹ năng HK1</div>
+        <div class="big">Review 9 Skills</div>
         <div class="sub">
-          Nội dung bám đúng các lesson đã học: Counting to 20 • Ordinal • Patterns • Tens&Ones • Number patterns • Addition stories • Picture graph • Subtraction within 20 • Time (o’clock).
+          Topics: Counting to 20 • Ordinal • Patterns • Tens & Ones • Number patterns • Addition • Picture graph • Subtraction • Time.
         </div>
 
         <div class="btnrow">
-          <button class="btn primary" id="startBtn">▶ Start</button>
+          <button class="btn primary" id="startBtn">▶ Start Game</button>
           <button class="btn ghost" id="resetBtn">🔄 Reset</button>
         </div>
 
         <div class="progress">
           <div class="row">
-            <div class="small"><b>Tiến độ</b></div>
-            <div class="small" id="mini">Chưa bắt đầu</div>
+            <div class="small"><b>Progress</b></div>
+            <div class="small" id="mini">Not started</div>
           </div>
           <div class="meter"><div class="bar" id="bar"></div></div>
         </div>
 
         <div class="skills" id="skillGrid"></div>
-
-        <div class="progress" style="margin-top:12px">
-          <div class="small">
-            💡 Tip cho GV: Cho bé làm theo nhóm, mỗi câu 20–30 giây. Sai thì thử lại, không trừ điểm.
-          </div>
-        </div>
       </div>
     </section>
 
@@ -403,25 +439,27 @@
           <div class="logo">🎯</div>
           <div class="t">
             <b>Review Game</b>
-            <span>Click đáp án để trả lời</span>
+            <span>Click to answer</span>
           </div>
         </div>
         <div class="chips">
-          <div class="chip">🔊 Sound: OFF</div>
+          <div class="chip">🔊 Sound: ON</div>
           <div class="chip">✨ OODLES MATH</div>
         </div>
       </header>
 
       <div class="stage">
         <div class="panel">
+          <!-- Welcome Screen -->
           <div class="end" id="welcome">
             <div>
-              <div style="font-size:44px">🌈</div>
+              <div style="font-size:60px; margin-bottom:10px;">🌈</div>
               <h2>Ready to review?</h2>
-              <p>Nhấn <b>Start</b> để bắt đầu nhé!</p>
+              <p>Press <b>Start Game</b> to begin!</p>
             </div>
           </div>
 
+          <!-- Quiz Screen -->
           <div id="quiz" style="display:none;">
             <div class="qtop">
               <div class="qtitle" id="qTitle">Question</div>
@@ -432,24 +470,38 @@
             <div class="choices" id="choices"></div>
 
             <div class="feedback" id="feedback" style="display:none;">
-              <div class="msg" id="msg">...</div>
-              <button class="nextbtn" id="nextBtn">Next ➜</button>
+              <div class="feedback-row">
+                <div class="msg" id="msg">...</div>
+                <div id="feedBtns" style="display:flex; gap:8px;"></div>
+              </div>
+              <div class="explain-box" id="explainBox"></div>
             </div>
           </div>
 
+          <!-- Finish Screen -->
           <div class="end" id="finish" style="display:none;">
             <div>
-              <div style="font-size:44px">🏆</div>
-              <h2 id="finalTitle">Hoàn thành!</h2>
+              <div style="font-size:50px">🏆</div>
+              <h2 id="finalTitle">All Done!</h2>
               <p id="finalText">...</p>
               <div class="btnrow" style="justify-content:center;">
-                <button class="btn primary" id="playAgain">▶ Play again</button>
-                <button class="btn" onclick="history.back()">↩ Back</button>
-              </div>
-              <div class="small" style="margin-top:10px">
-                GV có thể chụp màn hình kết quả để gửi phụ huynh 📸
+                <button class="btn primary" id="bonusBtn">🎈 Play Bonus Game</button>
+                <button class="btn ghost" id="playAgain">🔄 Play Again</button>
               </div>
             </div>
+          </div>
+
+          <!-- Bonus Game Overlay -->
+          <div id="bonusGame">
+            <div class="bonus-header">
+               <div style="display:flex; align-items:center; gap:8px;">
+                 <b>🎈 Bubble Pop!</b>
+                 <span id="bonusScoreDisplay" style="font-size:13px; color:#666; margin-left:8px;">Score: 0</span>
+               </div>
+               <div class="timer-badge" id="bonusTimer">20s</div>
+            </div>
+            <canvas id="bonusCanvas"></canvas>
+            <div style="text-align:center; padding:5px; font-size:12px; color:#666;">Click/Tap bubbles!</div>
           </div>
 
         </div>
@@ -458,21 +510,62 @@
   </div>
 
 <script>
-  // HK1 skills to cover (mapped from lesson list you gave)
+  // --- Audio System ---
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  
+  function playTone(freq, type, duration) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  }
+
+  function sfxCorrect() {
+    playTone(600, 'sine', 0.1);
+    setTimeout(() => playTone(800, 'sine', 0.2), 100);
+  }
+
+  function sfxWrong() {
+    playTone(150, 'sawtooth', 0.3);
+  }
+
+  function sfxPop() {
+    playTone(400 + Math.random()*200, 'triangle', 0.05);
+  }
+
+  function speak(text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  // --- Skills & Logic ---
   const skills = [
-    { key:"count",  icon:"🔢", name:"Counting to 20", sub:"Đếm số" },
-    { key:"ord",    icon:"🥇", name:"Ordinal Numbers", sub:"1st–5th" },
-    { key:"pat",    icon:"🧩", name:"Shape Patterns", sub:"Lặp lại" },
-    { key:"ten",    icon:"🧮", name:"Tens & Ones Frame", sub:"10-frame" },
-    { key:"numPat", icon:"📈", name:"Number Patterns", sub:"+1 / +2 / +5" },
-    { key:"add",    icon:"➕", name:"Addition with Stories", sub:"Cộng bằng lời" },
-    { key:"graph",  icon:"📊", name:"Picture Graph", sub:"Đọc biểu đồ" },
-    { key:"sub",    icon:"➖", name:"Subtraction within 20", sub:"Trừ ≤ 20" },
-    { key:"time",   icon:"🕒", name:"Time (o’clock)", sub:"Giờ đúng" },
+    { key:"count",  icon:"🔢", name:"Counting", sub:"Count to 20" },
+    { key:"ord",    icon:"🥇", name:"Ordinal", sub:"1st–10th" },
+    { key:"pat",    icon:"🧩", name:"Patterns", sub:"Shapes" },
+    { key:"ten",    icon:"🧮", name:"Tens Frame", sub:"Tens & Ones" },
+    { key:"numPat", icon:"📈", name:"Num Patterns", sub:"Repeating" },
+    { key:"add",    icon:"➕", name:"Addition", sub:"Range 10–20" },
+    { key:"graph",  icon:"📊", name:"Graph", sub:"Read data" },
+    { key:"sub",    icon:"➖", name:"Subtraction", sub:"Range 10–20" },
+    { key:"time",   icon:"🕒", name:"Time", sub:"O’clock" },
   ];
 
   const skillGrid = document.getElementById("skillGrid");
-  const skillState = {}; // key -> done bool
+  const skillState = {}; 
+
   function renderSkills(){
     skillGrid.innerHTML = "";
     skills.forEach(s=>{
@@ -480,55 +573,94 @@
       div.className = "skill" + (skillState[s.key] ? " done" : "");
       div.innerHTML = `
         <div class="sico">${s.icon}</div>
-        <div>
-          <b>${s.name}</b>
-          <span>${s.sub}</span>
-        </div>
+        <div><b>${s.name}</b><span>${s.sub}</span></div>
       `;
       skillGrid.appendChild(div);
     });
   }
 
-  // Helpers
   const rand = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
   const shuffle = (arr)=> arr.map(v=>({v, r:Math.random()})).sort((a,b)=>a.r-b.r).map(x=>x.v);
 
-  function setBar(pct){ document.getElementById("bar").style.width = `${pct}%`; }
-  function setMini(t){ document.getElementById("mini").textContent = t; }
+  function getUniqueChoices(correct, wrongPool) {
+    const s = new Set([correct]);
+    for(let w of wrongPool) {
+      if(s.size >= 3) break;
+      s.add(w);
+    }
+    return shuffle(Array.from(s)).map(String);
+  }
 
-  // Question builders (1 question per skill)
+  // --- Question Builders (Updated) ---
+
+  // 1. Counting: Show items with dynamic naming
   function qCounting(){
-    const n = rand(0,20);
-    const wrong1 = (n + rand(1,4)) % 21;
-    const wrong2 = Math.max(0, n - rand(1,4));
-    const choices = shuffle([n, wrong1, wrong2]).map(String);
+    const n = rand(1, 15); 
+    const pool = [
+      {e:"🍎", n:"apples"},
+      {e:"⭐", n:"stars"},
+      {e:"🎈", n:"balloons"},
+      {e:"🍄", n:"mushrooms"},
+      {e:"🍪", n:"cookies"}
+    ];
+    const picked = pool[rand(0, pool.length-1)];
+    const items = picked.e;
+    const name = picked.n;
+    
+    let itemHtml = "";
+    for(let i=0; i<n; i++) itemHtml += `<div class="count-item" style="animation-delay:${i*0.05}s">${items}</div>`;
+
+    const s = new Set([n]);
+    while(s.size < 3) s.add(rand(1, 15));
+    
     return {
       skill:"count", tag:"🔢 Counting",
-      html:`<div class="prompt">Which number is this?</div>
-            <div style="font-size:64px;font-weight:950;text-align:center;margin:6px 0 2px;">${n}</div>
-            <div class="hint">Chọn số đúng nhé.</div>`,
-      choices, answer:String(n)
+      text: `How many ${name} are there?`,
+      explanation: `Count one by one: 1, 2, 3... until you reach <b>${n}</b>.`,
+      html:`<div class="prompt-row">
+              <div class="prompt">How many ${name} are there?</div>
+              <div class="speak-btn" onclick="speak('How many ${name} are there?')">🔊</div>
+            </div>
+            <div class="count-grid">${itemHtml}</div>
+            <div class="hint">Count them one by one!</div>`,
+      choices: shuffle(Array.from(s)).map(String),
+      answer:String(n)
     };
   }
 
+  // 2. Ordinal: 10 animals
   function qOrdinal(){
-    const animal = ["🐶","🐱","🐰","🦊","🐼","🐯","🐸"][rand(0,6)];
-    const count = rand(3,5);
+    const pool = ["🐶","🐱","🐰","🦊","🐼","🐯","🐸","🐨","🦁","🐮"];
+    const count = 10;
+    const rowAnimals = shuffle(pool).slice(0, count); 
     const pos = rand(1,count);
-    const ordMap = {1:"1st",2:"2nd",3:"3rd",4:"4th",5:"5th"};
-    const row = Array.from({length:count}, ()=> `<span style="font-size:44px;margin:0 6px">${animal}</span>`).join("");
-    const answer = ordMap[pos];
-    const wrongs = shuffle(Object.values(ordMap).filter(x=>x!==answer)).slice(0,2);
-    const choices = shuffle([answer, ...wrongs]);
+    const targetAnimal = rowAnimals[pos-1];
+    
+    const ordMap = {
+      1:"1st",2:"2nd",3:"3rd",4:"4th",5:"5th",
+      6:"6th",7:"7th",8:"8th",9:"9th",10:"10th"
+    };
+    const targetOrd = ordMap[pos];
+
+    const rowHtml = rowAnimals.map(a => `<span style="font-size:32px;margin:0 2px">${a}</span>`).join("");
+    
+    const choices = getUniqueChoices(targetAnimal, shuffle(rowAnimals.filter(x=>x!==targetAnimal)));
+    
     return {
       skill:"ord", tag:"🥇 Ordinal",
-      html:`<div class="prompt">Which one is the <span style="color:var(--accent)">${answer}</span>?</div>
-            <div style="text-align:center;padding:10px 0">${row}</div>
-            <div class="hint">Đếm từ trái sang phải nhé.</div>`,
-      choices, answer
+      text: `Which animal is ${targetOrd}?`,
+      explanation: `Count from the left: 1st, 2nd, 3rd... The <b>${targetOrd}</b> animal is the ${targetAnimal}.`,
+      html:`<div class="prompt-row">
+              <div class="prompt">Which animal is <span style="color:var(--accent)">${targetOrd}</span>?</div>
+              <div class="speak-btn" onclick="speak('Which animal is ${targetOrd}?')">🔊</div>
+            </div>
+            <div style="text-align:center;padding:10px 0; background:#f8fafc; border-radius:12px;">${rowHtml}</div>
+            <div class="hint">Count from left to right →</div>`,
+      choices, answer: targetAnimal
     };
   }
 
+  // 3. Patterns: Shapes
   function qPatterns(){
     const patterns = [
       {seq:["🔴","🔵","🔴","🔵","?"], ans:"🔴", wrong:["🔵","🟢"]},
@@ -538,173 +670,204 @@
     const p = patterns[rand(0,patterns.length-1)];
     return {
       skill:"pat", tag:"🧩 Pattern",
-      html:`<div class="prompt">What comes next?</div>
-            <div style="text-align:center;font-size:44px;padding:10px 0;letter-spacing:2px">
-              ${p.seq.join(" ")}
+      text: "What comes next?",
+      explanation: `The pattern repeats: ${p.seq.slice(0,2).join(" ")}. So the next shape is <b>${p.ans}</b>.`,
+      html:`<div class="prompt-row">
+              <div class="prompt">What comes next?</div>
+              <div class="speak-btn" onclick="speak('What comes next?')">🔊</div>
             </div>
-            <div class="hint">Nhìn quy luật lặp lại nhé.</div>`,
-      choices: shuffle([p.ans, ...p.wrong]),
+            <div style="text-align:center;font-size:44px;padding:10px 0;letter-spacing:4px">
+              ${p.seq.join("")}
+            </div>`,
+      choices: getUniqueChoices(p.ans, p.wrong),
       answer: p.ans
     };
   }
 
+  // 4. Tens & Ones
   function qTensOnes(){
     const n = rand(11,19);
     const ones = n - 10;
-
     const cells = [];
     for(let i=0;i<10;i++) cells.push(`<div class="cell"><div class="dot"></div></div>`);
     for(let i=0;i<ones;i++) cells.push(`<div class="cell"><div class="dot blue"></div></div>`);
     while(cells.length < 20) cells.push(`<div class="cell"></div>`);
 
-    const wrong1 = n + rand(1,2);
-    const wrong2 = n - rand(1,2);
-    const choices = shuffle([n, wrong1, wrong2]).map(String);
+    const s = new Set([n]);
+    while(s.size < 3) { let w = n + rand(-5, 5); if(w>9 && w<21) s.add(w); }
 
     return {
       skill:"ten", tag:"🧮 Tens & Ones",
+      text: "How many dots?",
+      explanation: `10 green dots (one ten) + ${ones} blue dots (ones) = <b>${n}</b>.`,
       html:`<div class="two-cols">
               <div>
-                <div class="prompt">How many?</div>
-                <div class="hint">Green = 10 (ten). Blue = ones.</div>
+                <div class="prompt-row"><div class="prompt">How many?</div><div class="speak-btn" onclick="speak('How many dots?')">🔊</div></div>
+                <div class="hint">Green = 10. Blue = Ones.</div>
               </div>
               <div class="tenframe">${cells.join("")}</div>
             </div>`,
-      choices, answer: String(n)
+      choices: shuffle(Array.from(s)).map(String),
+      answer: String(n)
     };
   }
 
+  // 5. Number Patterns: REPEATING
   function qNumberPattern(){
-    const step = [1,2,5][rand(0,2)];
-    const start = rand(1,10);
-    const a = start, b = start+step, c = start+2*step;
-    const missing = start+3*step;
-    const wrongs = shuffle([missing+step, missing-step, missing+2]).slice(0,2);
-    const choices = shuffle([missing, ...wrongs]).map(String);
+    const type = rand(0,1); // 0: ABAB, 1: AABAAB
+    const A = rand(1,9);
+    let B = rand(1,9);
+    while(B===A) B = rand(1,9);
+
+    let seq = [];
+    let nextVal = 0;
+
+    if(type === 0) { // 5, 2, 5, 2, 5, ?
+      seq = [A, B, A, B, A];
+      nextVal = B;
+    } else { // 5, 5, 2, 5, 5, ?
+      seq = [A, A, B, A, A];
+      nextVal = B;
+    }
+
+    const seqStr = seq.join(" , ") + " , <span style='color:var(--accent)'>?</span>";
+    
+    // Wrong answers
+    const wrongs = [A, B, rand(1,9)].filter(x => x !== nextVal);
+    
     return {
-      skill:"numPat", tag:"📈 Number pattern",
-      html:`<div class="prompt">What number comes next?</div>
-            <div style="text-align:center;font-size:40px;font-weight:950;padding:10px 0">
-              ${a} , ${b} , ${c} , ?
+      skill:"numPat", tag:"📈 Number Pattern",
+      text: "What number comes next?",
+      explanation: `The numbers repeat in a pattern. The next number is <b>${nextVal}</b>.`,
+      html:`<div class="prompt-row">
+              <div class="prompt">What number comes next?</div>
+              <div class="speak-btn" onclick="speak('What number comes next?')">🔊</div>
             </div>
-            <div class="hint">Look at the steps (+${step}).</div>`,
-      choices, answer: String(missing)
+            <div style="text-align:center;font-size:36px;font-weight:950;padding:15px 0; color:#334155;">
+              ${seqStr}
+            </div>
+            <div class="hint">Look for the repeating pattern!</div>`,
+      choices: getUniqueChoices(String(nextVal), wrongs.map(String)),
+      answer: String(nextVal)
     };
   }
 
+  // 6. Addition Story: HARDER (Sum 10-20)
   function qAdditionStory(){
-    const a = rand(1,9), b = rand(1,9);
+    const a = rand(5,9);
+    const b = rand(5,9);
     const ans = a + b;
-    const wrongs = shuffle([ans+1, ans-1, ans+2, ans-2].filter(x=>x>=0 && x<=20 && x!==ans)).slice(0,2);
-    const choices = shuffle([ans, ...wrongs]).map(String);
+    const s = new Set([ans]);
+    while(s.size < 3) s.add(ans + rand(-2,3));
+    
     return {
       skill:"add", tag:"➕ Addition",
-      html:`<div class="prompt">Story time!</div>
-            <div style="font-size:15px;font-weight:900;line-height:1.35">
-              There are <span style="color:var(--accent)">${a}</span> apples 🍎 and <span style="color:var(--accent2)">${b}</span> more apples 🍎.<br>
+      text: `${a} apples plus ${b} apples. How many in total?`,
+      explanation: `Start with ${a}, and count on ${b} more. ${a} + ${b} = <b>${ans}</b>.`,
+      html:`<div class="prompt-row">
+              <div class="prompt">Story Time!</div>
+              <div class="speak-btn" onclick="speak('There are ${a} apples, and ${b} more. How many in total?')">🔊</div>
+            </div>
+            <div style="font-size:16px;font-weight:900;line-height:1.4; margin-bottom:10px">
+              There are <span style="color:var(--accent)">${a}</span> apples 🍎.<br>
+              Mom buys <span style="color:var(--accent2)">${b}</span> more apples 🍎.<br>
               How many apples in total?
             </div>
-            <div class="hint">Cộng lại nhé: ${a} + ${b} = ?</div>`,
-      choices, answer: String(ans)
+            <div class="hint">${a} + ${b} = ?</div>`,
+      choices: shuffle(Array.from(s).filter(x=>x>0)).map(String),
+      answer: String(ans)
     };
   }
 
+  // 7. Graph
   function qPictureGraph(){
-    const cats = [
-      {name:"Cats", icon:"🐱"},
-      {name:"Dogs", icon:"🐶"},
-      {name:"Fish", icon:"🐠"},
-    ];
+    const cats = [{name:"Cats", icon:"🐱"}, {name:"Dogs", icon:"🐶"}, {name:"Fish", icon:"🐠"}];
     let counts = shuffle([2,3,4,5]).slice(0,3);
-    while(new Set(counts).size !== 3) counts = shuffle([2,3,4,5]).slice(0,3);
-
     const data = cats.map((c,i)=>({ ...c, n: counts[i] }));
     const maxItem = data.reduce((m,x)=> x.n>m.n?x:m, data[0]);
 
     const graphHtml = data.map(d=>{
       const icons = Array.from({length:d.n}, ()=>`<span class="miniIcon">${d.icon}</span>`).join("");
-      return `
-        <div class="gline">
-          <div class="gleft"><span style="font-size:18px">${d.icon}</span> ${d.name}</div>
-          <div class="icons">${icons}</div>
-        </div>
-      `;
+      return `<div class="gline"><div class="gleft"><span>${d.icon}</span> ${d.name}</div><div class="icons">${icons}</div></div>`;
     }).join("");
 
     const wrongs = shuffle(data.filter(d=>d.name!==maxItem.name)).slice(0,2).map(d=>d.name);
-    const choices = shuffle([maxItem.name, ...wrongs]);
-
+    
     return {
       skill:"graph", tag:"📊 Graph",
+      text: "Which group has the most?",
+      explanation: `Look at the rows. <b>${maxItem.name}</b> has ${maxItem.n}, which is the most.`,
       html:`<div class="two-cols">
               <div>
-                <div class="prompt">Which has the most?</div>
-                <div class="hint">Nhìn số hình (icons) nhé.</div>
+                <div class="prompt-row"><div class="prompt">Which has the most?</div><div class="speak-btn" onclick="speak('Which group has the most?')">🔊</div></div>
+                <div class="hint">Look at the rows.</div>
               </div>
               <div class="graph">${graphHtml}</div>
             </div>`,
-      choices, answer: maxItem.name,
+      choices: shuffle([maxItem.name, ...wrongs]),
+      answer: maxItem.name,
       choiceLabels: {"Cats":"🐱 Cats","Dogs":"🐶 Dogs","Fish":"🐠 Fish"}
     };
   }
 
+  // 8. Subtraction: HARDER (Total 12-20)
   function qSubtraction(){
-    const total = rand(6,20);
-    const take = rand(1, Math.min(9,total));
+    const total = rand(12,20);
+    const take = rand(3, 9);
     const ans = total - take;
-    const wrongs = shuffle([ans+1, ans-1, ans+2, ans-2].filter(x=>x>=0 && x<=20 && x!==ans)).slice(0,2);
-    const choices = shuffle([ans, ...wrongs]).map(String);
+    const s = new Set([ans]);
+    while(s.size < 3) s.add(ans + rand(-2,3));
+
     return {
       skill:"sub", tag:"➖ Subtraction",
-      html:`<div class="prompt">How many left?</div>
-            <div style="font-size:15px;font-weight:900;line-height:1.35">
+      text: `${total} balloons. ${take} pop. How many left?`,
+      explanation: `You have ${total}, and ${take} go away. ${total} - ${take} = <b>${ans}</b>.`,
+      html:`<div class="prompt-row">
+              <div class="prompt">How many left?</div>
+              <div class="speak-btn" onclick="speak('You have ${total} balloons. ${take} fly away. How many left?')">🔊</div>
+            </div>
+            <div style="font-size:16px;font-weight:900;line-height:1.4">
               You have <span style="color:var(--accent)">${total}</span> balloons 🎈.<br>
-              <span style="color:var(--accent2)">${take}</span> balloons fly away 💨.<br>
-              How many balloons left?
+              <span style="color:var(--accent2)">${take}</span> fly away 💨.<br>
+              How many left?
             </div>
             <div class="hint">${total} − ${take} = ?</div>`,
-      choices, answer: String(ans)
+      choices: shuffle(Array.from(s).filter(x=>x>=0)).map(String),
+      answer: String(ans)
     };
   }
 
+  // 9. Time
   function qTimeOclock(){
     const hour = rand(1,12);
-    const hourDeg = hour * 30;
-    const answer = `${hour}:00`;
-    const wrongs = shuffle([((hour%12)+1), (hour===1?12:hour-1), (hour+2>12?hour-10:hour+2)]).slice(0,2)
-      .map(h=>`${h}:00`);
-    const choices = shuffle([answer, ...wrongs]);
-
-    const ticks = Array.from({length:12}, (_,i)=>{
-      const deg = (i*30);
-      return `<div class="tick" style="transform: translate(-50%,-100%) rotate(${deg}deg);"></div>`;
-    }).join("");
-
+    const s = new Set([hour]);
+    while(s.size < 3) s.add(rand(1,12));
+    
+    const ticks = Array.from({length:12}, (_,i)=> `<div class="tick" style="transform: translate(-50%,-100%) rotate(${i*30}deg);"></div>`).join("");
     const nums = Array.from({length:12}, (_,i)=>{
-      const n = i+1;
-      const deg = n*30;
-      const r = 84;
-      const x = Math.sin((deg*Math.PI)/180)*r;
-      const y = -Math.cos((deg*Math.PI)/180)*r;
-      return `<div class="num" style="transform: translate(${x}px, ${y}px) translate(-50%,-50%);">${n}</div>`;
+      const deg = (i+1)*30, r = 75;
+      const x = Math.sin(deg*Math.PI/180)*r, y = -Math.cos(deg*Math.PI/180)*r;
+      return `<div class="num" style="transform: translate(${x}px, ${y}px) translate(-50%,-50%);">${i+1}</div>`;
     }).join("");
 
     return {
-      skill:"time", tag:"🕒 Time o’clock",
+      skill:"time", tag:"🕒 Time",
+      text: "What time is it?",
+      explanation: `The big hand is on 12. The small hand is on ${hour}. It is <b>${hour}:00</b>.`,
       html:`<div class="two-cols">
               <div>
-                <div class="prompt">What time is it?</div>
-                <div class="hint">Minute hand is always at 12 (o’clock).</div>
+                 <div class="prompt-row"><div class="prompt">What time is it?</div><div class="speak-btn" onclick="speak('What time is it?')">🔊</div></div>
+                 <div class="hint">The big hand is on 12.</div>
               </div>
-              <div class="clock" aria-label="Clock">
-                ${ticks}
-                ${nums}
-                <div class="hand hour" style="transform: translate(-50%,-100%) rotate(${hourDeg}deg);"></div>
-                <div class="hand minute" style="transform: translate(-50%,-100%) rotate(0deg);"></div>
+              <div class="clock">
+                ${ticks}${nums}
+                <div class="hand hour" style="transform: translate(-50%,-100%) rotate(${hour*30}deg);"></div>
+                <div class="hand minute"></div>
                 <div class="center"></div>
               </div>
             </div>`,
-      choices, answer
+      choices: shuffle(Array.from(s)).map(h=>`${h}:00`),
+      answer: `${hour}:00`
     };
   }
 
@@ -713,173 +876,307 @@
     qAdditionStory, qPictureGraph, qSubtraction, qTimeOclock
   ];
 
-  // State
-  let order = [];
-  let idx = 0;
-  let score = 0;
-  let locked = false;
+  // --- Game Engine ---
+  let order = [], idx = 0, score = 0, locked = false;
+  let currentQuestionFailed = false; // Track if current question was missed
+  let currentQData = null; // Store current question data for explanation
 
-  // DOM
-  const startBtn = document.getElementById("startBtn");
-  const resetBtn = document.getElementById("resetBtn");
-  const welcome = document.getElementById("welcome");
-  const quiz = document.getElementById("quiz");
-  const finish = document.getElementById("finish");
-  const qTitle = document.getElementById("qTitle");
-  const qTag = document.getElementById("qTag");
-  const qBox = document.getElementById("qBox");
-  const choicesEl = document.getElementById("choices");
-  const feedback = document.getElementById("feedback");
-  const msg = document.getElementById("msg");
-  const nextBtn = document.getElementById("nextBtn");
-  const chipScore = document.getElementById("chipScore");
-  const chipQ = document.getElementById("chipQ");
-  const playAgain = document.getElementById("playAgain");
+  const els = {
+    start: document.getElementById("startBtn"),
+    reset: document.getElementById("resetBtn"),
+    welcome: document.getElementById("welcome"),
+    quiz: document.getElementById("quiz"),
+    finish: document.getElementById("finish"),
+    qTitle: document.getElementById("qTitle"),
+    qTag: document.getElementById("qTag"),
+    qBox: document.getElementById("qBox"),
+    choices: document.getElementById("choices"),
+    feedback: document.getElementById("feedback"),
+    feedBtns: document.getElementById("feedBtns"),
+    msg: document.getElementById("msg"),
+    explainBox: document.getElementById("explainBox"),
+    score: document.getElementById("chipScore"),
+    qNum: document.getElementById("chipQ"),
+    playAgain: document.getElementById("playAgain"),
+    bonusBtn: document.getElementById("bonusBtn"),
+    bonusGame: document.getElementById("bonusGame"),
+    bar: document.getElementById("bar"),
+    mini: document.getElementById("mini")
+  };
 
-  function updateChips(){
-    chipScore.textContent = `⭐ Score: ${score}`;
-    chipQ.textContent = `🧩 ${Math.min(idx+1, builders.length)} / ${builders.length}`;
+  function init(){
+    renderSkills();
+    reset();
   }
 
   function start(){
-    score = 0;
-    idx = 0;
-    locked = false;
+    score = 0; idx = 0; locked = false;
     order = shuffle(builders.map((_,i)=>i));
-    for(const s of skills) skillState[s.key] = false;
-
+    for(const k in skillState) skillState[k] = false;
     renderSkills();
-    setBar(0);
-    setMini("Đang chơi…");
-    welcome.style.display = "none";
-    finish.style.display = "none";
-    quiz.style.display = "block";
-    nextBtn.textContent = "Next ➜";
-    updateChips();
+    
+    els.welcome.style.display = "none";
+    els.finish.style.display = "none";
+    els.quiz.style.display = "block";
+    
+    updateUI();
     loadQuestion();
+    
+    if(audioCtx.state === 'suspended') audioCtx.resume();
   }
 
   function reset(){
-    score = 0; idx = 0; locked = false; order = [];
-    for(const s of skills) skillState[s.key] = false;
-    renderSkills();
-    setBar(0);
-    setMini("Chưa bắt đầu");
-    chipScore.textContent = `⭐ Score: 0`;
-    chipQ.textContent = `🧩 0 / ${builders.length}`;
-    quiz.style.display = "none";
-    finish.style.display = "none";
-    welcome.style.display = "grid";
+    score = 0; idx = 0; 
+    els.welcome.style.display = "grid";
+    els.quiz.style.display = "none";
+    els.finish.style.display = "none";
+    els.score.textContent = "⭐ Score: 0";
+    els.qNum.textContent = "🧩 0 / 9";
+    els.bar.style.width = "0%";
+    els.mini.textContent = "Not started";
+  }
+
+  function updateUI(){
+    els.score.textContent = `⭐ Score: ${score}`;
+    els.qNum.textContent = `🧩 ${Math.min(idx+1, 9)} / 9`;
+    els.bar.style.width = `${Math.round((idx/9)*100)}%`;
   }
 
   function loadQuestion(){
-    feedback.style.display = "none";
-    msg.textContent = "";
-    msg.className = "msg";
-
-    const q = builders[order[idx]]();
-
-    qTitle.textContent = `Question ${idx+1}`;
-    qTag.textContent = q.tag;
-    qBox.innerHTML = q.html;
-
-    setBar(Math.round((idx / builders.length) * 100));
-    updateChips();
-
-    choicesEl.innerHTML = "";
+    els.feedback.style.display = "none";
+    els.explainBox.style.display = "none";
+    currentQuestionFailed = false; 
+    
+    currentQData = builders[order[idx]]();
+    const q = currentQData;
+    
+    els.qTitle.textContent = `Question ${idx+1}`;
+    els.qTag.textContent = q.tag;
+    els.qBox.innerHTML = q.html;
+    
+    els.choices.innerHTML = "";
     const labels = q.choiceLabels || {};
     q.choices.forEach(c=>{
-      const btn = document.createElement("button");
+      const btn = document.createElement("div");
       btn.className = "choice";
-      btn.type = "button";
       btn.textContent = labels[c] || c;
-      btn.onclick = ()=> pickAnswer(btn, c, q.answer, q.skill);
-      choicesEl.appendChild(btn);
+      btn.onclick = ()=> checkAnswer(btn, c, q.answer, q.skill);
+      els.choices.appendChild(btn);
     });
   }
 
-  function pickAnswer(btn, choice, answer, skillKey){
+  function checkAnswer(btn, choice, ans, skill){
     if(locked) return;
-
-    if(choice === answer){
+    
+    if(choice === ans){
+      // CORRECT
       locked = true;
       btn.classList.add("correct");
-      score += 1;
-      skillState[skillKey] = true;
+      sfxCorrect();
+      
+      if(!currentQuestionFailed) {
+        score++;
+      }
+      
+      skillState[skill] = true;
       renderSkills();
-
-      feedback.style.display = "flex";
-      msg.textContent = "✅ Correct! Great job!";
-      msg.classList.add("ok");
-
-      setBar(Math.round(((idx+1) / builders.length) * 100));
-      nextBtn.textContent = (idx === builders.length - 1) ? "Finish 🏁" : "Next ➜";
-      updateChips();
-      return;
+      showFeedback(true, "✅ Correct!");
+    } else {
+      // WRONG
+      currentQuestionFailed = true; 
+      btn.classList.add("wrong");
+      sfxWrong();
+      showFeedback(false, "❌ Try again!");
     }
-
-    btn.classList.add("wrong");
-    feedback.style.display = "flex";
-    msg.textContent = "❌ Try again!";
-    msg.classList.add("bad");
-    nextBtn.textContent = "Try again";
-    nextBtn.onclick = ()=>{
-      document.querySelectorAll(".choice").forEach(x=>x.classList.remove("wrong"));
-      feedback.style.display = "none";
-      msg.textContent = "";
-      msg.className = "msg";
-      nextBtn.textContent = "Next ➜";
-      nextBtn.onclick = onNext;
-    };
   }
 
-  function onNext(){
-    if(!locked){
-      feedback.style.display = "flex";
-      msg.textContent = "👉 Choose an answer first!";
-      msg.className = "msg bad";
-      return;
+  function showFeedback(isGood, text){
+    els.feedback.style.display = "flex";
+    els.feedback.className = "feedback " + (isGood ? "good" : "bad");
+    els.msg.textContent = text;
+    els.feedBtns.innerHTML = ""; // Clear buttons
+
+    if(isGood){
+      // Show "Explain" and "Next" buttons
+      const explainBtn = document.createElement("button");
+      explainBtn.className = "nextbtn btn info";
+      explainBtn.innerHTML = "💡 Explain";
+      explainBtn.onclick = toggleExplanation;
+      
+      const nextBtn = document.createElement("button");
+      nextBtn.className = "nextbtn";
+      nextBtn.innerHTML = (idx === 8) ? "Finish 🏁" : "Next ➜";
+      nextBtn.onclick = nextQuestion;
+
+      els.feedBtns.appendChild(explainBtn);
+      els.feedBtns.appendChild(nextBtn);
+    } else {
+      // Show "Try Again" button
+      const tryBtn = document.createElement("button");
+      tryBtn.className = "nextbtn";
+      tryBtn.innerHTML = "Try Again ↺";
+      tryBtn.onclick = () => {
+         // Reset UI for retry
+         document.querySelectorAll(".choice.wrong").forEach(el => el.classList.remove("wrong"));
+         els.feedback.style.display = "none";
+      };
+      els.feedBtns.appendChild(tryBtn);
     }
+  }
+
+  function toggleExplanation(){
+     if(els.explainBox.style.display === "block"){
+         els.explainBox.style.display = "none";
+     } else {
+         els.explainBox.style.display = "block";
+         els.explainBox.innerHTML = currentQData.explanation || "No explanation available.";
+     }
+  }
+
+  function nextQuestion(){
+    if(!locked) return;
     locked = false;
-    idx += 1;
-    if(idx >= builders.length) showFinish();
-    else loadQuestion();
-  }
-
-  function showFinish(){
-    quiz.style.display = "none";
-    finish.style.display = "grid";
-
-    const total = builders.length;
-    const pct = Math.round((score/total)*100);
-
-    let level = "Needs Practice 💪";
-    let advice = "Con ôn lại vài kỹ năng nhé. Chơi lại 1 lần nữa là giỏi ngay!";
-    if(score >= 8){
-      level = "Excellent 🌟";
-      advice = "Con làm rất tốt! Cô khen con 🎉";
-    } else if(score >= 6){
-      level = "Good 👍";
-      advice = "Con làm tốt rồi! Ôn thêm chút nữa là xuất sắc.";
+    idx++;
+    if(idx >= 9) finishGame();
+    else {
+      updateUI();
+      loadQuestion();
     }
-
-    document.getElementById("finalTitle").textContent = `Finished! • ${level}`;
-    document.getElementById("finalText").innerHTML =
-      `Điểm của con: <b>${score}/${total}</b> (${pct}%)<br>${advice}`;
-
-    setMini(`Hoàn thành • ${score}/${total}`);
-    setBar(100);
-    chipQ.textContent = `🧩 ${total} / ${total}`;
-    chipScore.textContent = `⭐ Score: ${score}`;
   }
 
-  startBtn.onclick = start;
-  resetBtn.onclick = reset;
-  nextBtn.onclick = onNext;
-  playAgain.onclick = start;
+  function finishGame(){
+    els.quiz.style.display = "none";
+    els.finish.style.display = "grid";
+    
+    document.getElementById("finalTitle").textContent = (score>=7) ? "Super Star! 🌟" : "Good Job! 👍";
+    document.getElementById("finalText").innerHTML = `You got <b>${score}/9</b> correct!<br>Let's play a bonus game now!`;
+    
+    els.bar.style.width = "100%";
+    els.mini.textContent = "Completed";
+  }
 
-  renderSkills();
-  reset();
+  // --- Bonus Game: Bubble Pop ---
+  let bonusLoop;
+  let bonusTimerInterval;
+  let bonusTime = 20; // 20 seconds
+  let bonusScore = 0;
+  let bubbles = [];
+  const cvs = document.getElementById("bonusCanvas");
+  const ctx = cvs.getContext("2d");
+  const bonusTimerEl = document.getElementById("bonusTimer");
+  const bonusScoreEl = document.getElementById("bonusScoreDisplay");
+
+  function startBonus(){
+    els.bonusGame.style.display = "flex";
+    
+    const rect = els.bonusGame.getBoundingClientRect();
+    cvs.width = rect.width;
+    cvs.height = rect.height - 50; 
+    
+    bonusTime = 20;
+    bonusScore = 0;
+    bonusTimerEl.textContent = bonusTime + "s";
+    bonusScoreEl.textContent = "Score: " + bonusScore;
+    
+    bubbles = [];
+    for(let i=0; i<15; i++) spawnBubble();
+    
+    if(bonusLoop) cancelAnimationFrame(bonusLoop);
+    if(bonusTimerInterval) clearInterval(bonusTimerInterval);
+    
+    updateBonus();
+    
+    bonusTimerInterval = setInterval(() => {
+      bonusTime--;
+      bonusTimerEl.textContent = bonusTime + "s";
+      if(bonusTime <= 0){
+        endBonusGame();
+      }
+    }, 1000);
+  }
+  
+  function endBonusGame(){
+    clearInterval(bonusTimerInterval);
+    cancelAnimationFrame(bonusLoop);
+    alert(`Time's up! ⏰\nYou popped ${bonusScore} bubbles!`);
+    closeBonus();
+  }
+
+  function closeBonus(){
+    els.bonusGame.style.display = "none";
+    if(bonusLoop) cancelAnimationFrame(bonusLoop);
+    if(bonusTimerInterval) clearInterval(bonusTimerInterval);
+  }
+
+  function spawnBubble(){
+    const r = rand(20, 40);
+    bubbles.push({
+      x: rand(r, cvs.width-r),
+      y: cvs.height + r + rand(0, 100),
+      r: r,
+      dy: rand(2, 5) * 0.5,
+      color: `hsl(${rand(0,360)}, 80%, 60%)`,
+      txt: ["⭐","❤️","🎈"][rand(0,2)]
+    });
+  }
+
+  function updateBonus(){
+    ctx.clearRect(0,0, cvs.width, cvs.height);
+    
+    for(let i=0; i<bubbles.length; i++){
+      let b = bubbles[i];
+      b.y -= b.dy;
+      
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+      ctx.fillStyle = b.color;
+      ctx.fill();
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      ctx.fillStyle = "white";
+      ctx.font = `${b.r}px Arial`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(b.txt, b.x, b.y);
+
+      if(b.y < -b.r) {
+        bubbles[i] = { ...b, y: cvs.height + b.r, x: rand(b.r, cvs.width-b.r) };
+      }
+    }
+    bonusLoop = requestAnimationFrame(updateBonus);
+  }
+
+  cvs.addEventListener("pointerdown", (e)=>{
+    if(bonusTime <= 0) return;
+    const rect = cvs.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    
+    for(let i=0; i<bubbles.length; i++){
+      let b = bubbles[i];
+      const dist = Math.sqrt((mx-b.x)**2 + (my-b.y)**2);
+      if(dist < b.r){
+        sfxPop();
+        bonusScore++;
+        bonusScoreEl.textContent = "Score: " + bonusScore;
+        
+        bubbles[i].y = cvs.height + 100;
+        bubbles[i].x = rand(20, cvs.width-20);
+        bubbles[i].color = `hsl(${rand(0,360)}, 80%, 60%)`;
+        break; 
+      }
+    }
+  });
+
+  els.start.onclick = start;
+  els.reset.onclick = reset;
+  els.playAgain.onclick = start;
+  els.bonusBtn.onclick = startBonus;
+  
+  init();
+
 </script>
 </body>
 </html>
