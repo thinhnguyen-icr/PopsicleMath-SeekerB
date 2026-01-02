@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en">
+ <head>
+   <link rel="stylesheet" href="../assets/brand.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Number Circle Race</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif;
+      background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+      min-height: 100%;
+      width: 100%;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .app-container {
+      width: 100%;
+      min-height: 100%;
+      padding: 20px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .main-title {
+      font-size: 48px;
+      font-weight: bold;
+      color: #6c5ce7;
+      text-shadow: 3px 3px 0 rgba(0,0,0,0.1);
+      margin: 0 0 30px 0;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .menu-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 30px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .menu-section {
+      margin-bottom: 40px;
+    }
+
+    .section-title {
+      font-size: 28px;
+      color: #fd79a8;
+      margin-bottom: 20px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .option-grid {
+      display: grid;
+      gap: 15px;
+    }
+
+    .option-btn {
+      background: linear-gradient(135deg, #a29bfe 0%, #74b9ff 100%);
+      color: white;
+      border: 4px solid transparent;
+      padding: 20px;
+      border-radius: 20px;
+      font-size: 22px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .option-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    }
+
+    .option-btn.selected {
+      border-color: #6c5ce7;
+      background: linear-gradient(135deg, #6c5ce7 0%, #0984e3 100%);
+      transform: scale(1.05);
+    }
+
+    .start-btn {
+      background: linear-gradient(135deg, #55efc4 0%, #00b894 100%);
+      color: #2d3436;
+      border: none;
+      padding: 20px 60px;
+      border-radius: 30px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      display: block;
+      margin: 30px auto 0;
+    }
+
+    .start-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    .start-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .game-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 30px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .game-title {
+      font-size: 32px;
+      color: #fd79a8;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .game-info {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .info-badge {
+      background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .timer {
+      font-size: 24px;
+      color: #6c5ce7;
+      font-weight: bold;
+    }
+
+    .player-turn {
+      background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .turn-timer {
+      background: rgba(255,255,255,0.3);
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 22px;
+      font-weight: bold;
+      min-width: 45px;
+      text-align: center;
+    }
+
+    .turn-timer.warning {
+      background: #ff6b6b;
+      animation: pulse 0.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .color-palette {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .color-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 4px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+      position: relative;
+    }
+
+    .color-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .color-btn.selected {
+      border-color: #2d3436;
+      transform: scale(1.15);
+    }
+
+    .color-btn .player-label {
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .number-grid {
+      display: grid;
+      gap: 10px;
+      justify-content: center;
+      margin: 0 auto 30px;
+    }
+
+    .grid-level1 {
+      grid-template-columns: repeat(5, 1fr);
+      max-width: 600px;
+    }
+
+    .grid-level2 {
+      grid-template-columns: repeat(10, 1fr);
+      max-width: 900px;
+    }
+
+    .grid-level3 {
+      grid-template-columns: repeat(10, 1fr);
+      max-width: 900px;
+    }
+
+    .number-circle {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: 3px solid #dfe6e9;
+      background: #f8f9fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: #2d3436;
+    }
+
+    .number-circle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .number-circle.correct {
+      border-width: 5px;
+      transform: scale(1.05);
+    }
+
+    .number-circle.wrong {
+      background: #ff7675 !important;
+      animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .control-btn {
+      background: #55efc4;
+      color: #2d3436;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 20px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+
+    .control-btn:hover {
+      background: #00b894;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.25);
+    }
+
+    .result-container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 30px;
+      padding: 50px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .result-title {
+      font-size: 48px;
+      color: #6c5ce7;
+      margin-bottom: 30px;
+      font-weight: bold;
+    }
+
+    .result-stats {
+      background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 20px;
+      margin-bottom: 30px;
+      font-size: 24px;
+      line-height: 1.8;
+    }
+
+    .player-score {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 15px 0;
+      padding: 15px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 15px;
+    }
+
+    .winner-badge {
+      background: #ffeaa7;
+      color: #2d3436;
+      padding: 5px 15px;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .main-title {
+        font-size: 32px;
+      }
+
+      .option-btn {
+        font-size: 18px;
+        padding: 15px;
+      }
+
+      .number-circle {
+        width: 50px;
+        height: 50px;
+        font-size: 18px;
+      }
+
+      .grid-level1 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .grid-level2, .grid-level3 {
+        grid-template-columns: repeat(5, 1fr);
+      }
+
+      .game-title {
+        font-size: 24px;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+   <img src="../assets/logo-oodles-math.png" class="oodles-logo">
+  <div class="app-container"><!-- Menu Screen -->
+   <div id="menuScreen" class="screen active">
+    <h1 class="main-title"><span>⭐</span> <span id="gameTitle">Number Circle Race</span> <span>⭐</span></h1>
+    <div class="menu-container">
+     <div class="menu-section">
+      <div class="section-title">
+       🎮 Choose Level
+      </div>
+      <div class="option-grid"><button class="option-btn" data-option="level" data-value="1"> Level 1: Count to 20 </button> <button class="option-btn" data-option="level" data-value="2"> Level 2: Count to 50 </button> <button class="option-btn" data-option="level" data-value="3"> Level 3: Count to 100 </button>
+      </div>
+     </div>
+     <div class="menu-section">
+      <div class="section-title">
+       👥 Number of Players
+      </div>
+      <div class="option-grid"><button class="option-btn" data-option="players" data-value="1"> 1 Player (Race Against Time) </button> <button class="option-btn" data-option="players" data-value="2"> 2 Players (5 seconds per turn) </button>
+      </div>
+     </div>
+     <div class="menu-section">
+      <div class="section-title">
+       🔢 Counting Direction
+      </div>
+      <div class="option-grid"><button class="option-btn" data-option="direction" data-value="forward"> Count Forward (1 → 100) </button> <button class="option-btn" data-option="direction" data-value="backward"> Count Backward (100 → 1) </button>
+      </div>
+     </div><button class="start-btn" id="startGameBtn" disabled>🚀 START GAME</button>
+    </div>
+   </div><!-- Game Screen -->
+   <div id="gameScreen" class="screen">
+    <div class="game-container">
+     <div class="game-header">
+      <h2 class="game-title" id="levelTitle">Level 1</h2>
+      <div class="game-info">
+       <div class="info-badge" id="modeInfo"></div>
+       <div class="info-badge" id="directionInfo"></div>
+       <div class="timer" id="timer">
+        ⏱️ 00:00
+       </div>
+       <div class="player-turn" id="playerTurn" style="display:none;"><span id="playerTurnText"></span> <span class="turn-timer" id="turnTimer">5</span>
+       </div>
+      </div>
+     </div>
+     <div class="color-palette" id="colorPalette" style="display:none;"><button class="color-btn" data-color="#ff6b6b" data-player="1" style="background: #ff6b6b;">
+       <div class="player-label">
+        Player 1
+       </div></button> <button class="color-btn" data-color="#4ecdc4" data-player="2" style="background: #4ecdc4;">
+       <div class="player-label">
+        Player 2
+       </div></button>
+     </div>
+     <div class="number-grid" id="numberGrid"></div>
+     <div class="controls"><button class="control-btn" id="backToMenuBtn">🏠 Back to Menu</button> <button class="control-btn" id="resetGameBtn">🔄 Play Again</button>
+     </div>
+    </div>
+   </div><!-- Result Screen -->
+   <div id="resultScreen" class="screen">
+    <div class="result-container">
+     <div class="result-title">
+      🎉 Complete!
+     </div>
+     <div class="result-stats" id="resultStats"></div>
+     <div class="controls"><button class="control-btn" id="playAgainBtn">🔄 Play Again</button> <button class="control-btn" id="backToMenuBtn2">🏠 Back to Menu</button>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      game_title: "Number Circle Race",
+      level_1_title: "Level 1 – Count to 20!",
+      level_2_title: "Level 2 – Count to 50!",
+      level_3_title: "Level 3 – Count to 100!"
+    };
+
+    let gameSettings = {
+      level: null,
+      players: null,
+      direction: null
+    };
+
+    let gameState = {
+      currentNumber: 1,
+      startTime: null,
+      timerInterval: null,
+      turnTimerInterval: null,
+      turnTimeLeft: 5,
+      player1Correct: 0,
+      player2Correct: 0,
+      currentPlayer: 1,
+      maxNumber: 20
+    };
+
+    const levelMaxNumbers = { 1: 20, 2: 50, 3: 100 };
+    const playerColors = { 1: '#ff6b6b', 2: '#4ecdc4' };
+
+    // Sound effects using Web Audio API
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      if (type === 'correct') {
+        oscillator.frequency.value = 523.25; // C5
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+      } else if (type === 'wrong') {
+        oscillator.frequency.value = 200;
+        oscillator.type = 'sawtooth';
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      } else if (type === 'complete') {
+        // Play victory melody
+        const notes = [523.25, 587.33, 659.25, 783.99];
+        notes.forEach((freq, i) => {
+          const osc = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          osc.connect(gain);
+          gain.connect(audioContext.destination);
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.3, audioContext.currentTime + i * 0.15);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.15 + 0.2);
+          osc.start(audioContext.currentTime + i * 0.15);
+          osc.stop(audioContext.currentTime + i * 0.15 + 0.2);
+        });
+      }
+    }
+
+    // Shuffle array function
+    function shuffleArray(array) {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    }
+
+    // Menu option selection
+    document.querySelectorAll('.option-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const option = this.dataset.option;
+        const value = this.dataset.value;
+        
+        document.querySelectorAll(`[data-option="${option}"]`).forEach(b => {
+          b.classList.remove('selected');
+        });
+        this.classList.add('selected');
+        
+        gameSettings[option] = option === 'level' || option === 'players' ? parseInt(value) : value;
+        
+        checkCanStart();
+      });
+    });
+
+    function checkCanStart() {
+      const canStart = gameSettings.level && gameSettings.players && gameSettings.direction;
+      document.getElementById('startGameBtn').disabled = !canStart;
+    }
+
+    document.getElementById('startGameBtn').addEventListener('click', startGame);
+    document.getElementById('backToMenuBtn').addEventListener('click', goToMenu);
+    document.getElementById('backToMenuBtn2').addEventListener('click', goToMenu);
+    document.getElementById('resetGameBtn').addEventListener('click', resetGame);
+    document.getElementById('playAgainBtn').addEventListener('click', resetGame);
+
+    function startGame() {
+      showScreen('gameScreen');
+      initGame();
+    }
+
+    function goToMenu() {
+      showScreen('menuScreen');
+      resetGameState();
+    }
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    function initGame() {
+      const { level, players, direction } = gameSettings;
+      gameState.maxNumber = levelMaxNumbers[level];
+      gameState.currentNumber = direction === 'forward' ? 1 : gameState.maxNumber;
+      gameState.player1Correct = 0;
+      gameState.player2Correct = 0;
+      gameState.currentPlayer = 1;
+      
+      // Update UI
+      const levelTitles = {
+        1: window.elementSdk ? window.elementSdk.config.level_1_title || defaultConfig.level_1_title : defaultConfig.level_1_title,
+        2: window.elementSdk ? window.elementSdk.config.level_2_title || defaultConfig.level_2_title : defaultConfig.level_2_title,
+        3: window.elementSdk ? window.elementSdk.config.level_3_title || defaultConfig.level_3_title : defaultConfig.level_3_title
+      };
+      document.getElementById('levelTitle').textContent = levelTitles[level];
+      document.getElementById('modeInfo').textContent = players === 1 ? '1 Player' : '2 Players';
+      document.getElementById('directionInfo').textContent = direction === 'forward' ? 'Count Forward ↑' : 'Count Backward ↓';
+      
+      // Color palette for 2 players
+      if (players === 2) {
+        document.getElementById('colorPalette').style.display = 'flex';
+        document.getElementById('playerTurn').style.display = 'block';
+        updatePlayerTurn();
+      } else {
+        document.getElementById('colorPalette').style.display = 'none';
+        document.getElementById('playerTurn').style.display = 'none';
+      }
+      
+      // Generate grid
+      generateGrid(level);
+      
+      // Start timer
+      if (players === 1) {
+        startTimer();
+      }
+    }
+
+    function generateGrid(level) {
+      const grid = document.getElementById('numberGrid');
+      grid.innerHTML = '';
+      grid.className = `number-grid grid-level${level}`;
+      
+      const maxNumber = levelMaxNumbers[level];
+      
+      // Create array of numbers and shuffle them
+      const numbers = Array.from({ length: maxNumber }, (_, i) => i + 1);
+      const shuffledNumbers = shuffleArray(numbers);
+      
+      shuffledNumbers.forEach(number => {
+        const circle = document.createElement('div');
+        circle.className = 'number-circle';
+        circle.textContent = number;
+        circle.dataset.number = number;
+        circle.addEventListener('click', () => handleCircleClick(circle, number));
+        grid.appendChild(circle);
+      });
+    }
+
+    function handleCircleClick(circle, number) {
+      const { players, direction } = gameSettings;
+      
+      if (circle.classList.contains('correct')) return;
+      
+      const isCorrect = number === gameState.currentNumber;
+      
+      if (isCorrect) {
+        playSound('correct');
+        circle.classList.add('correct');
+        const currentColor = players === 2 ? playerColors[gameState.currentPlayer] : '#55efc4';
+        circle.style.borderColor = currentColor;
+        circle.style.backgroundColor = currentColor + '33';
+        
+        if (players === 2) {
+          if (gameState.currentPlayer === 1) {
+            gameState.player1Correct++;
+          } else {
+            gameState.player2Correct++;
+          }
+          switchPlayer();
+        }
+        
+        if (direction === 'forward') {
+          gameState.currentNumber++;
+        } else {
+          gameState.currentNumber--;
+        }
+        
+        checkGameComplete();
+      } else {
+        playSound('wrong');
+        circle.classList.add('wrong');
+        setTimeout(() => circle.classList.remove('wrong'), 500);
+      }
+    }
+
+    function updatePlayerTurn() {
+      const turnText = document.getElementById('playerTurnText');
+      const turnDiv = document.getElementById('playerTurn');
+      turnText.textContent = `Turn: Player ${gameState.currentPlayer}`;
+      turnDiv.style.background = `linear-gradient(135deg, ${playerColors[gameState.currentPlayer]} 0%, ${playerColors[gameState.currentPlayer]}99 100%)`;
+      
+      // Reset and start turn timer
+      resetTurnTimer();
+      startTurnTimer();
+    }
+
+    function startTurnTimer() {
+      gameState.turnTimeLeft = 5;
+      updateTurnTimerDisplay();
+      
+      gameState.turnTimerInterval = setInterval(() => {
+        gameState.turnTimeLeft--;
+        updateTurnTimerDisplay();
+        
+        if (gameState.turnTimeLeft <= 0) {
+          switchPlayer();
+        }
+      }, 1000);
+    }
+
+    function resetTurnTimer() {
+      if (gameState.turnTimerInterval) {
+        clearInterval(gameState.turnTimerInterval);
+        gameState.turnTimerInterval = null;
+      }
+      gameState.turnTimeLeft = 5;
+    }
+
+    function updateTurnTimerDisplay() {
+      const timerElement = document.getElementById('turnTimer');
+      if (timerElement) {
+        timerElement.textContent = gameState.turnTimeLeft;
+        
+        if (gameState.turnTimeLeft <= 2) {
+          timerElement.classList.add('warning');
+        } else {
+          timerElement.classList.remove('warning');
+        }
+      }
+    }
+
+    function switchPlayer() {
+      gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+      updatePlayerTurn();
+    }
+
+    function checkGameComplete() {
+      const { direction } = gameSettings;
+      const isComplete = direction === 'forward' 
+        ? gameState.currentNumber > gameState.maxNumber
+        : gameState.currentNumber < 1;
+      
+      if (isComplete) {
+        playSound('complete');
+        if (gameSettings.players === 1) {
+          stopTimer();
+        } else {
+          resetTurnTimer();
+        }
+        setTimeout(() => showResults(), 500);
+      }
+    }
+
+    function startTimer() {
+      gameState.startTime = Date.now();
+      gameState.timerInterval = setInterval(updateTimer, 100);
+    }
+
+    function updateTimer() {
+      const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+      const seconds = (elapsed % 60).toString().padStart(2, '0');
+      document.getElementById('timer').textContent = `⏱️ ${minutes}:${seconds}`;
+    }
+
+    function stopTimer() {
+      if (gameState.timerInterval) {
+        clearInterval(gameState.timerInterval);
+        gameState.timerInterval = null;
+      }
+    }
+
+    function showResults() {
+      showScreen('resultScreen');
+      
+      const statsDiv = document.getElementById('resultStats');
+      
+      if (gameSettings.players === 1) {
+        const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        
+        statsDiv.innerHTML = `
+          <div style="font-size: 36px; margin-bottom: 20px;">⏱️</div>
+          <div>Completion Time:</div>
+          <div style="font-size: 48px; font-weight: bold; margin: 15px 0;">
+            ${minutes}:${seconds.toString().padStart(2, '0')}
+          </div>
+          <div style="margin-top: 20px; font-size: 18px;">
+            ${gameState.maxNumber} numbers completed!
+          </div>
+        `;
+      } else {
+        const player1Score = gameState.player1Correct;
+        const player2Score = gameState.player2Correct;
+        const winner = player1Score > player2Score ? 1 : (player2Score > player1Score ? 2 : 0);
+        
+        statsDiv.innerHTML = `
+          <div style="font-size: 36px; margin-bottom: 20px;">🏆</div>
+          <div class="player-score">
+            <span>🔴 Player 1:</span>
+            <span style="font-size: 32px; font-weight: bold;">${player1Score}</span>
+            ${winner === 1 ? '<span class="winner-badge">🏆 Winner!</span>' : ''}
+          </div>
+          <div class="player-score">
+            <span>🔵 Player 2:</span>
+            <span style="font-size: 32px; font-weight: bold;">${player2Score}</span>
+            ${winner === 2 ? '<span class="winner-badge">🏆 Winner!</span>' : ''}
+          </div>
+          ${winner === 0 ? '<div style="margin-top: 20px; font-size: 24px;">🤝 Tie!</div>' : ''}
+        `;
+      }
+    }
+
+    function resetGame() {
+      showScreen('gameScreen');
+      resetGameState();
+      initGame();
+    }
+
+    function resetGameState() {
+      stopTimer();
+      resetTurnTimer();
+      gameState = {
+        currentNumber: 1,
+        startTime: null,
+        timerInterval: null,
+        turnTimerInterval: null,
+        turnTimeLeft: 5,
+        player1Correct: 0,
+        player2Correct: 0,
+        currentPlayer: 1,
+        maxNumber: 20
+      };
+    }
+
+    // Element SDK integration
+    async function onConfigChange(config) {
+      document.getElementById('gameTitle').textContent = config.game_title || defaultConfig.game_title;
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig: defaultConfig,
+        onConfigChange: onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["game_title", config.game_title || defaultConfig.game_title],
+          ["level_1_title", config.level_1_title || defaultConfig.level_1_title],
+          ["level_2_title", config.level_2_title || defaultConfig.level_2_title],
+          ["level_3_title", config.level_3_title || defaultConfig.level_3_title]
+        ])
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b78e87fb7aae2e1',t:'MTc2NzM0Mjc3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
