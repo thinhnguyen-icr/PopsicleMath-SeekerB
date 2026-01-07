@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oodles Math Randomizer</title>
+    <title>Cartoon Number Randomizer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Patrick+Hand&display=swap" rel="stylesheet">
     <style>
@@ -122,7 +122,7 @@
 
         <!-- Header -->
         <h1 class="text-4xl md:text-5xl font-bold mb-6 text-black tracking-wide" style="text-shadow: 2px 2px 0px white;">
-            Oodles Math - Lucky Number!
+            Lucky Number!
         </h1>
 
         <!-- Decoration Star -->
@@ -154,7 +154,7 @@
             </button>
         </div>
 
-        <p class="mt-4 text-gray-500 text-lg">Pick a number from 1 to 20</p>
+        <p class="mt-4 text-gray-500 text-lg">Pick a number from 1 to 100</p>
     </div>
 
     <!-- Canvas for confetti -->
@@ -227,7 +227,7 @@
             const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD'];
 
             const interval = setInterval(() => {
-                const randomTemp = Math.floor(Math.random() * 20) + 1;
+                const randomTemp = Math.floor(Math.random() * 100) + 1;
                 resultText.innerText = randomTemp;
                 resultText.style.color = colors[Math.floor(Math.random() * colors.length)];
                 playPopSound(300 + Math.random() * 200); // Low random blips
@@ -241,7 +241,7 @@
         }
 
         function finalize() {
-            const finalNumber = Math.floor(Math.random() * 20) + 1;
+            const finalNumber = Math.floor(Math.random() * 100) + 1;
             
             resultText.innerText = finalNumber;
             resultText.style.color = '#000000'; // Final result is black
