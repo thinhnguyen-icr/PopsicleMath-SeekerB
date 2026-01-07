@@ -1,382 +1,471 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { RotateCcw, Volume2, Minus, MoveRight } from 'lucide-react';
-
-// --- Sub-Components ---
-
-const TenRod = ({ onClick, isGhost }) => (
-  <div 
-    onClick={!isGhost ? onClick : undefined}
-    className={`flex flex-col sm:flex-row gap-[1px] ${!isGhost && onClick ? 'cursor-pointer hover:brightness-110 active:scale-95 transition-transform' : ''}`}
-  >
-    {/* Visual representation of a "Ten" rod - composed of 10 segments */}
-    <div className="flex gap-[1px]">
-        {Array(10).fill(0).map((_, i) => (
-            <div key={i} className={`w-3 h-3 sm:w-5 sm:h-5 ${isGhost ? 'bg-sky-300 opacity-50' : 'bg-sky-600'} border border-sky-700 shadow-sm rounded-[1px]`}></div>
-        ))}
-    </div>
-  </div>
-);
-
-const OneCube = ({ onClick, isGhost }) => (
-  <div 
-    onClick={!isGhost ? onClick : undefined}
-    className={`
-      w-3 h-3 sm:w-5 sm:h-5 rounded-[2px] shadow-sm
-      ${isGhost ? 'bg-amber-200 opacity-30' : 'bg-amber-400 border border-amber-500'}
-      ${!isGhost && onClick ? 'cursor-pointer hover:brightness-110 active:scale-95 transition-transform' : ''}
-    `}
-  ></div>
-);
-
-// --- Main Application ---
-
-export default function App() {
-  // --- State ---
-  const [tens, setTens] = useState(0);
-  const [ones, setOnes] = useState(0);
-  
-  // Interaction State
-  const [isRegroupingDrag, setIsRegroupingDrag] = useState(false);
-  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
-  const [notification, setNotification] = useState(null); 
-
-  // Refs
-  const audioCtxRef = useRef(null);
-  const tensColumnRef = useRef(null); 
-
-  // Constants
-  const MAX_TENS = 20; 
-  const MAX_ONES = 30; 
-
-  // --- Sound Engine ---
-  const playSound = (type) => {
-    // Initialize AudioContext on user interaction
-    if (!audioCtxRef.current) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) audioCtxRef.current = new AudioContext();
-    }
-    const ctx = audioCtxRef.current;
-    if (!ctx || ctx.state === 'suspended') ctx?.resume();
-    if (!ctx) return;
-
-    const osc = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-    osc.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    const now = ctx.currentTime;
-
-    if (type === 'pop') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(400, now);
-      osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
-      gainNode.gain.setValueAtTime(0.2, now);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-      osc.start(now); osc.stop(now + 0.1);
-    } else if (type === 'delete') {
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(300, now);
-      osc.frequency.linearRampToValueAtTime(100, now + 0.15);
-      gainNode.gain.setValueAtTime(0.2, now);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-      osc.start(now); osc.stop(now + 0.15);
-    } else if (type === 'magic') {
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(300, now);
-      osc.frequency.linearRampToValueAtTime(800, now + 0.4);
-      gainNode.gain.setValueAtTime(0.1, now);
-      gainNode.gain.linearRampToValueAtTime(0.3, now + 0.2);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-      osc.start(now); osc.stop(now + 0.4);
-    }
-  };
-
-  const speakNumber = () => {
-    if ('speechSynthesis' in window) {
-      const total = tens * 10 + ones;
-      const text = `${total}`;
-      
-      // Cancel any existing speech to avoid queue buildup
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US'; // You can change to 'vi-VN' if you want Vietnamese numbers
-      utterance.rate = 1.0;
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
-  // --- Game Logic ---
-
-  const addOne = () => {
-    if (ones < MAX_ONES) {
-      playSound('pop');
-      setOnes(o => o + 1);
-    } else {
-      setNotification("Too many ones! Time to regroup.");
-      setTimeout(() => setNotification(null), 2000);
-    }
-  };
-
-  const removeOne = () => {
-    if (ones > 0) {
-      playSound('delete');
-      setOnes(o => o - 1);
-    }
-  };
-
-  const addTen = () => {
-    if (tens < MAX_TENS) {
-      playSound('pop');
-      setTens(t => t + 1);
-    } else {
-      setNotification("Board full!");
-      setTimeout(() => setNotification(null), 1500);
-    }
-  };
-
-  const removeTen = () => {
-    if (tens > 0) {
-      playSound('delete');
-      setTens(t => t - 1);
-    }
-  };
-
-  const resetBoard = () => {
-    playSound('delete');
-    setTens(0);
-    setOnes(0);
-  };
-
-  // --- Regrouping (Drag & Drop) ---
-  
-  const handlePointerDownRegroup = (e) => {
-    e.preventDefault(); // Prevent scrolling on touch
-    setIsRegroupingDrag(true);
-    
-    // Get correct coordinates whether mouse or touch
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    
-    setDragPos({ x: clientX, y: clientY });
-  };
-
-  useEffect(() => {
-    const handlePointerMove = (e) => {
-      if (!isRegroupingDrag) return;
-      e.preventDefault(); // Important to prevent scrolling while dragging
-      
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      
-      setDragPos({ x: clientX, y: clientY });
-    };
-
-    const handlePointerUp = (e) => {
-      if (!isRegroupingDrag) return;
-      setIsRegroupingDrag(false);
-
-      if (tensColumnRef.current) {
-        const rect = tensColumnRef.current.getBoundingClientRect();
-        
-        // Handle both touch end and mouse up coordinates
-        // For touch end, we use changedTouches because touches is empty
-        const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-        const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-
-        // Check if dropped within the Tens column bounds
-        if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
-          // Successful Regroup!
-          playSound('magic');
-          setTens(t => t + 1);
-          setOnes(o => o - 10);
-          setNotification("Regrouped!");
-          setTimeout(() => setNotification(null), 1500);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Place Value Game</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom styles to match the React app feel */
+        body {
+            touch-action: none; /* Prevent scrolling/zooming gestures globally to help with drag */
+            user-select: none;
+            -webkit-user-select: none;
         }
-      }
-    };
+        /* Custom scrollbar hiding if needed */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="w-full h-screen bg-sky-50 font-sans overflow-hidden flex flex-col items-center">
 
-    if (isRegroupingDrag) {
-      window.addEventListener('mousemove', handlePointerMove);
-      window.addEventListener('mouseup', handlePointerUp);
-      // Use { passive: false } to allow preventDefault
-      window.addEventListener('touchmove', handlePointerMove, { passive: false });
-      window.addEventListener('touchend', handlePointerUp);
-    }
-    return () => {
-      window.removeEventListener('mousemove', handlePointerMove);
-      window.removeEventListener('mouseup', handlePointerUp);
-      window.removeEventListener('touchmove', handlePointerMove);
-      window.removeEventListener('touchend', handlePointerUp);
-    };
-  }, [isRegroupingDrag]); 
-
-  const totalValue = (tens * 10) + ones;
-  const needsRegrouping = ones >= 10;
-
-  return (
-    <div className="w-full h-screen bg-sky-50 font-sans select-none overflow-hidden touch-none flex flex-col items-center">
-      
-      {/* --- HEADER --- */}
-      <div className="w-full bg-white border-b border-sky-100 p-4 shadow-sm z-20 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <img 
-              src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB9AAAASdCAYAAAAYFsdWAAAACXBIWXMAAB7CAAAewgFu0HU+AAAE32lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI1LTA5LTE3PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkV4dElkPjgxNzQzNWIxLWIwNTItNGViMS05YTk2LTY3NTQxNzMxNmM0ZTwvQXR0cmliOkV4dElkPgogICAgIDxBdHRyaWI6RmJJZD41MjUyNjU5MTQxNzk1ODA8L0F0dHJpYjpGYklkPgogICAgIDxBdHRyaWI6VG91Y2hUeXBlPjI8L0F0dHJpYjpUb3VjaFR5cGU+CiAgICA8L3JkZjpsaT4KICAgPC9yZGY6U2VxPgogIDwvQXR0cmliOkFkcz4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6ZGM9J2h0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvJz4KICA8ZGM6dGl0bGU+CiAgIDxyZGY6QWx0PgogICAgPHJkZjpsaSB4bWw6bGFuZz0neC1kZWZhdWx0Jz4yNTA4MDdfT29kbGVzIE1hdGhfU3RhY2tlZExvZ28gQXJ0d29ya19QQU5UT05FLnBkZiAtIDE8L3JkZjpsaT4KICAgPC9yZGY6QWx0PgogIDwvZGM6dGl0bGU+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOnBkZj0naHR0cDovL25zLmFkb2JlLmNvbS9wZGYvMS4zLyc+CiAgPHBkZjpBdXRob3I+SUNSIEFDQURFTUlDPC9wZGY6QXV0aG9yPgogPC9yZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6eG1wPSdodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvJz4KICA8eG1wOkNyZWF0b3JUb29sPkNhbnZhIChSZW5kZXJlcikgZG9jPURBR3pOSjdtcGdlIHVzZXI9VUFHZl9Xb2hTdEkgYnJhbmQ9SUNSIEFjYWRlbWljIHRlbXBsYXRlPTwveG1wOkNyZWF0b3JUb29sPgogPC9yZGY6RGVzY3JpcHRpb24+CjwvcmRmOlJERj4KPC94OnhtcG1ldGE+Cjw/eHBhY2tldCBlbmQ9J3InPz5C6efJAADRh0lEQVR4nOzZMQEAAAI...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" 
-              alt="Logo" 
-              className="h-20 w-auto" 
-          />
-          
-          <div className="flex flex-col">
-            <div className="flex items-baseline gap-2">
-              <button onClick={speakNumber} className="text-sky-500 hover:text-sky-700 p-1 transition-colors" aria-label="Speak number">
-                <Volume2 size={20} />
-              </button>
+    <!-- HEADER -->
+    <div class="w-full bg-white border-b border-sky-100 p-4 shadow-sm z-20 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <img 
+                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB9AAAASdCAYAAAAYFsdWAAAACXBIWXMAAB7CAAAewgFu0HU+AAAE32lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI1LTA5LTE3PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkV4dElkPjgxNzQzNWIxLWIwNTItNGViMS05YTk2LTY3NTQxNzMxNmM0ZTwvQXR0cmliOkV4dElkPgogICAgIDxBdHRyaWI6RmJJZD41MjUyNjU5MTQxNzk1ODA8L0F0dHJpYjpGYklkPgogICAgIDxBdHRyaWI6VG91Y2hUeXBlPjI8L0F0dHJpYjpUb3VjaFR5cGU+CiAgICA8L3JkZjpsaT4KICAgPC9yZGY6U2VxPgogIDwvQXR0cmliOkFkcz4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6ZGM9J2h0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvJz4KICA8ZGM6dGl0bGU+CiAgIDxyZGY6QWx0PgogICAgPHJkZjpsaSB4bWw6bGFuZz0neC1kZWZhdWx0Jz4yNTA4MDdfT29kbGVzIE1hdGhfU3RhY2tlZExvZ28gQXJ0d29ya19QQU5UT05FLnBkZiAtIDE8L3JkZjpsaT4KICAgPC9yZGY6QWx0PgogIDwvZGM6dGl0bGU+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOnBkZj0naHR0cDovL25zLmFkb2JlLmNvbS9wZGYvMS4zLyc+CiAgPHBkZjpBdXRob3I+SUNSIEFDQURFTUlDPC9wZGY6QXV0aG9yPgogPC9yZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6eG1wPSdodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvJz4KICA8eG1wOkNyZWF0b3JUb29sPkNhbnZhIChSZW5kZXJlcikgZG9jPURBR3pOSjdtcGdlIHVzZXI9VUFHZl9Xb2hTdEkgYnJhbmQ9SUNSIEFjYWRlbWljIHRlbXBsYXRlPTwveG1wOkNyZWF0b3JUb29sPgogPC9yZGY6RGVzY3JpcHRpb24+CjwvcmRmOlJERj4KPC94OnhtcG1ldGE+Cjw/eHBhY2tldCBlbmQ9J3InPz5C6efJAADRh0lEQVR4nOzZMQEAAAI...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" 
+                alt="Logo" 
+                class="h-20 w-auto" 
+            />
+            
+            <div class="flex flex-col">
+                <div class="flex items-baseline gap-2">
+                    <button onclick="speakNumber()" class="text-sky-500 hover:text-sky-700 p-1 transition-colors" aria-label="Speak number">
+                        <i data-lucide="volume-2" class="w-5 h-5"></i>
+                    </button>
+                </div>
             </div>
-          </div>
         </div>
 
         <button 
-          onClick={resetBoard} 
-          className="flex items-center gap-2 bg-sky-100 hover:bg-red-50 text-sky-700 hover:text-red-600 px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-colors font-semibold"
+            onclick="resetBoard()" 
+            class="flex items-center gap-2 bg-sky-100 hover:bg-red-50 text-sky-700 hover:text-red-600 px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-colors font-semibold"
         >
-          <RotateCcw size={18} />
-          <span className="hidden sm:inline">Reset</span>
+            <i data-lucide="rotate-ccw" class="w-4 h-4 sm:w-[18px] sm:h-[18px]"></i>
+            <span class="hidden sm:inline">Reset</span>
         </button>
-      </div>
-
-      {/* NOTIFICATION */}
-      <div className="h-8 flex items-center justify-center mt-2 relative w-full z-30 pointer-events-none">
-        {notification && (
-          <div className="bg-sky-600 text-white px-4 py-1 rounded-full text-sm font-bold animate-bounce shadow-lg">
-          {notification}
-          </div>
-        )}
-      </div>
-
-      {/* --- GAME BOARD --- */}
-      <div className="flex-1 w-full max-w-4xl p-2 sm:p-4 flex flex-col overflow-hidden relative">
-        <div className="flex-1 bg-white rounded-3xl border-4 border-sky-100 flex flex-col overflow-hidden shadow-xl relative">
-          
-          {/* Labels */}
-          <div className="flex border-b-2 border-sky-50 bg-sky-50/50">
-            <div className="w-1/2 py-2 sm:py-3 text-center text-sky-700 font-black text-lg sm:text-xl tracking-widest border-r border-sky-100">TENS</div>
-            <div className="w-1/2 py-2 sm:py-3 text-center text-amber-500 font-black text-lg sm:text-xl tracking-widest">ONES</div>
-          </div>
-
-          {/* Columns */}
-          <div className="flex-1 flex overflow-hidden relative">
-            
-            {/* TENS COLUMN */}
-            <div 
-              ref={tensColumnRef}
-              className={`w-1/2 border-r border-dashed border-sky-200 p-2 sm:p-4 overflow-y-auto overflow-x-hidden flex flex-col items-center gap-3 bg-sky-50/30 transition-colors duration-300
-                ${isRegroupingDrag ? 'bg-sky-100/80 ring-inset ring-4 ring-sky-300' : ''}
-              `}
-            >
-              <div className="flex flex-wrap justify-center gap-2 sm:gap-4 w-full content-start pb-20">
-                {Array(tens).fill(0).map((_, i) => (
-                  <TenRod key={i} onClick={removeTen} isGhost={false} />
-                ))}
-              </div>
-              {tens === 0 && <div className="text-sky-200 font-bold mt-10 text-xl opacity-50">0</div>}
-            </div>
-
-            {/* ONES COLUMN */}
-            <div className="w-1/2 p-2 sm:p-4 overflow-y-auto flex flex-col relative bg-orange-50/10">
-              <div className="flex flex-wrap content-start justify-center gap-2 sm:gap-3 w-full pb-20">
-                {Array(ones).fill(0).map((_, i) => (
-                  <OneCube key={i} onClick={removeOne} isGhost={false} />
-                ))}
-              </div>
-              {ones === 0 && <div className="text-slate-300 font-bold mt-10 text-xl opacity-50 w-full text-center">0</div>}
-
-              {/* REGROUPING OVERLAY/HINT */}
-              {needsRegrouping && (
-                <div className="sticky bottom-4 left-0 right-0 flex justify-center pointer-events-none z-20 mt-auto">
-                  <div className="bg-white/95 backdrop-blur-sm p-2 rounded-xl border-2 border-sky-500 shadow-xl animate-pulse flex flex-col items-center">
-                    <span className="text-sky-700 font-bold text-xs mb-1 uppercase">Group 10 Ones</span>
-                    <div 
-                      className="pointer-events-auto cursor-grab active:cursor-grabbing bg-amber-100 p-2 rounded-lg border-2 border-amber-400 flex flex-wrap gap-1 w-20 sm:w-28 justify-center shadow-md transform hover:scale-105 transition-transform"
-                      onMouseDown={handlePointerDownRegroup}
-                      onTouchStart={handlePointerDownRegroup}
-                    >
-                      {/* Visual bundle of 10 */}
-                      {Array(10).fill(0).map((_, i) => <div key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-amber-500 rounded-[1px]"></div>)}
-                      <div className="absolute -top-2 -right-2 bg-sky-600 text-white rounded-full p-1 shadow">
-                        <MoveRight size={14} />
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-sky-500 font-bold mt-1">Drag to Tens</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      {/* --- CONTROLS --- */}
-      <div className="w-full bg-sky-900 p-3 sm:p-4 pb-8 sm:pb-4 flex flex-col gap-2 shadow-[0_-5px_20px_rgba(0,0,0,0.15)] z-30">
-        <div className="flex justify-center items-stretch gap-2 sm:gap-4 max-w-2xl mx-auto w-full">
-          
-          {/* TENS CONTROLS */}
-          <div className="flex-1 flex gap-2">
-            <button 
-              onClick={removeTen}
-              disabled={tens === 0}
-              className="bg-sky-800 hover:bg-sky-700 text-sky-300 hover:text-white disabled:opacity-30 rounded-xl p-2 sm:p-3 flex items-center justify-center transition-colors"
-              aria-label="Remove Ten"
-            >
-              <Minus size={24} />
-            </button>
-            <button 
-              onClick={addTen}
-              className="flex-1 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 border-b-4 border-sky-950 active:border-b-0 active:translate-y-1 rounded-xl p-2 flex flex-col items-center justify-center gap-1 transition-all"
-            >
-              <div className="flex gap-[1px]">
-                {Array(3).fill(0).map((_,i) => <div key={i} className="w-1 h-3 sm:h-4 bg-sky-200/50 rounded-[1px]"></div>)}
-              </div>
-              <span className="text-white font-bold text-sm sm:text-base">Add 10</span>
-            </button>
-          </div>
-
-          {/* ONES CONTROLS */}
-          <div className="flex-1 flex gap-2">
-            <button 
-              onClick={addOne}
-              className="flex-1 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 border-b-4 border-amber-700 active:border-b-0 active:translate-y-1 rounded-xl p-2 flex flex-col items-center justify-center gap-1 transition-all"
-            >
-              <div className="w-3 h-3 sm:w-4 sm:h-4 bg-amber-200/50 rounded-[2px]"></div>
-              <span className="text-white font-bold text-sm sm:text-base">Add 1</span>
-            </button>
-            <button 
-              onClick={removeOne}
-              disabled={ones === 0}
-              className="bg-sky-800 hover:bg-sky-700 text-sky-300 hover:text-white disabled:opacity-30 rounded-xl p-2 sm:p-3 flex items-center justify-center transition-colors"
-              aria-label="Remove One"
-            >
-              <Minus size={24} />
-            </button>
-          </div>
-
-        </div>
-        <div className="text-center text-sky-300/60 text-xs font-medium mt-1">
-          Tip: Accumulate 10 ones to create a ten!
-        </div>
-      </div>
-
-      {/* DRAG PREVIEW */}
-      {isRegroupingDrag && (
-        <div 
-          className="fixed pointer-events-none z-50 flex items-center"
-          style={{ left: dragPos.x, top: dragPos.y, transform: 'translate(-50%, -50%) rotate(-5deg)' }}
-        >
-          <div className="bg-amber-500/80 p-2 rounded-lg shadow-2xl scale-110 border-2 border-white">
-            <TenRod isGhost={false} />
-          </div>
-        </div>
-      )}
-
     </div>
-  );
-}
+
+    <!-- NOTIFICATION -->
+    <div id="notification-container" class="h-8 flex items-center justify-center mt-2 relative w-full z-30 pointer-events-none">
+        <!-- Notification injected here -->
+    </div>
+
+    <!-- GAME BOARD -->
+    <div class="flex-1 w-full max-w-4xl p-2 sm:p-4 flex flex-col overflow-hidden relative">
+        <div class="flex-1 bg-white rounded-3xl border-4 border-sky-100 flex flex-col overflow-hidden shadow-xl relative">
+            
+            <!-- Labels -->
+            <div class="flex border-b-2 border-sky-50 bg-sky-50/50">
+                <div class="w-1/2 py-2 sm:py-3 text-center text-sky-700 font-black text-lg sm:text-xl tracking-widest border-r border-sky-100">TENS</div>
+                <div class="w-1/2 py-2 sm:py-3 text-center text-amber-500 font-black text-lg sm:text-xl tracking-widest">ONES</div>
+            </div>
+
+            <!-- Columns -->
+            <div class="flex-1 flex overflow-hidden relative">
+                
+                <!-- TENS COLUMN -->
+                <div 
+                    id="tens-column"
+                    class="w-1/2 border-r border-dashed border-sky-200 p-2 sm:p-4 overflow-y-auto overflow-x-hidden flex flex-col items-center gap-3 bg-sky-50/30 transition-colors duration-300"
+                >
+                    <div id="tens-container" class="flex flex-wrap justify-center gap-2 sm:gap-4 w-full content-start pb-20">
+                        <!-- Ten Rods injected here -->
+                    </div>
+                    <div id="tens-zero" class="text-sky-200 font-bold mt-10 text-xl opacity-50">0</div>
+                </div>
+
+                <!-- ONES COLUMN -->
+                <div class="w-1/2 p-2 sm:p-4 overflow-y-auto flex flex-col relative bg-orange-50/10">
+                    <div id="ones-container" class="flex flex-wrap content-start justify-center gap-2 sm:gap-3 w-full pb-20">
+                        <!-- One Cubes injected here -->
+                    </div>
+                    <div id="ones-zero" class="text-slate-300 font-bold mt-10 text-xl opacity-50 w-full text-center">0</div>
+
+                    <!-- REGROUPING OVERLAY/HINT -->
+                    <div id="regroup-hint" class="sticky bottom-4 left-0 right-0 flex justify-center pointer-events-none z-20 mt-auto hidden">
+                        <div class="bg-white/95 backdrop-blur-sm p-2 rounded-xl border-2 border-sky-500 shadow-xl animate-pulse flex flex-col items-center">
+                            <span class="text-sky-700 font-bold text-xs mb-1 uppercase">Group 10 Ones</span>
+                            <div 
+                                id="regroup-drag-handle"
+                                class="pointer-events-auto cursor-grab active:cursor-grabbing bg-amber-100 p-2 rounded-lg border-2 border-amber-400 flex flex-wrap gap-1 w-20 sm:w-28 justify-center shadow-md transform hover:scale-105 transition-transform"
+                            >
+                                <!-- Visual bundle of 10 -->
+                                <div class="w-full flex flex-wrap gap-1 justify-center" id="bundle-preview"></div>
+                                <div class="absolute -top-2 -right-2 bg-sky-600 text-white rounded-full p-1 shadow">
+                                    <i data-lucide="move-right" class="w-3.5 h-3.5"></i>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-sky-500 font-bold mt-1">Drag to Tens</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="w-full bg-sky-900 p-3 sm:p-4 pb-8 sm:pb-4 flex flex-col gap-2 shadow-[0_-5px_20px_rgba(0,0,0,0.15)] z-30">
+        <div class="flex justify-center items-stretch gap-2 sm:gap-4 max-w-2xl mx-auto w-full">
+            
+            <!-- TENS CONTROLS -->
+            <div class="flex-1 flex gap-2">
+                <button 
+                    onclick="removeTen()"
+                    id="btn-remove-ten"
+                    class="bg-sky-800 hover:bg-sky-700 text-sky-300 hover:text-white disabled:opacity-30 rounded-xl p-2 sm:p-3 flex items-center justify-center transition-colors"
+                    aria-label="Remove Ten"
+                >
+                    <i data-lucide="minus" class="w-6 h-6"></i>
+                </button>
+                <button 
+                    onclick="addTen()"
+                    class="flex-1 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 border-b-4 border-sky-950 active:border-b-0 active:translate-y-1 rounded-xl p-2 flex flex-col items-center justify-center gap-1 transition-all"
+                >
+                    <div class="flex gap-[1px]">
+                        <div class="w-1 h-3 sm:h-4 bg-sky-200/50 rounded-[1px]"></div>
+                        <div class="w-1 h-3 sm:h-4 bg-sky-200/50 rounded-[1px]"></div>
+                        <div class="w-1 h-3 sm:h-4 bg-sky-200/50 rounded-[1px]"></div>
+                    </div>
+                    <span class="text-white font-bold text-sm sm:text-base">Add 10</span>
+                </button>
+            </div>
+
+            <!-- ONES CONTROLS -->
+            <div class="flex-1 flex gap-2">
+                <button 
+                    onclick="addOne()"
+                    class="flex-1 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 border-b-4 border-amber-700 active:border-b-0 active:translate-y-1 rounded-xl p-2 flex flex-col items-center justify-center gap-1 transition-all"
+                >
+                    <div class="w-3 h-3 sm:w-4 sm:h-4 bg-amber-200/50 rounded-[2px]"></div>
+                    <span class="text-white font-bold text-sm sm:text-base">Add 1</span>
+                </button>
+                <button 
+                    onclick="removeOne()"
+                    id="btn-remove-one"
+                    class="bg-sky-800 hover:bg-sky-700 text-sky-300 hover:text-white disabled:opacity-30 rounded-xl p-2 sm:p-3 flex items-center justify-center transition-colors"
+                    aria-label="Remove One"
+                >
+                    <i data-lucide="minus" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+        </div>
+        <div class="text-center text-sky-300/60 text-xs font-medium mt-1">
+            Tip: Accumulate 10 ones to create a ten!
+        </div>
+    </div>
+
+    <!-- DRAG PREVIEW (Hidden by default) -->
+    <div 
+        id="drag-preview" 
+        class="fixed pointer-events-none z-50 flex items-center hidden"
+        style="transform: translate(-50%, -50%) rotate(-5deg);"
+    >
+        <div class="bg-amber-500/80 p-2 rounded-lg shadow-2xl scale-110 border-2 border-white">
+            <!-- TenRod Content -->
+            <div class="flex flex-col sm:flex-row gap-[1px]">
+                <div class="flex gap-[1px]" id="drag-preview-rod">
+                    <!-- Segments -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State ---
+        let tens = 0;
+        let ones = 0;
+        let isRegroupingDrag = false;
+        let dragPos = { x: 0, y: 0 };
+        let notificationTimeout = null;
+
+        // --- Constants ---
+        const MAX_TENS = 20;
+        const MAX_ONES = 30;
+
+        // --- Refs (Global DOM elements) ---
+        const tensColumn = document.getElementById('tens-column');
+        const tensContainer = document.getElementById('tens-container');
+        const tensZero = document.getElementById('tens-zero');
+        
+        const onesContainer = document.getElementById('ones-container');
+        const onesZero = document.getElementById('ones-zero');
+        
+        const notificationContainer = document.getElementById('notification-container');
+        
+        const regroupHint = document.getElementById('regroup-hint');
+        const regroupDragHandle = document.getElementById('regroup-drag-handle');
+        const dragPreview = document.getElementById('drag-preview');
+        const dragPreviewRod = document.getElementById('drag-preview-rod');
+
+        const btnRemoveTen = document.getElementById('btn-remove-ten');
+        const btnRemoveOne = document.getElementById('btn-remove-one');
+
+        // --- Audio Context ---
+        let audioCtx = null;
+
+        // --- Helper: Create Elements ---
+        
+        function createTenRodElement() {
+            const wrapper = document.createElement('div');
+            wrapper.className = "flex flex-col sm:flex-row gap-[1px] cursor-pointer hover:brightness-110 active:scale-95 transition-transform";
+            wrapper.onclick = removeTen;
+
+            const inner = document.createElement('div');
+            inner.className = "flex gap-[1px]";
+
+            for (let i = 0; i < 10; i++) {
+                const seg = document.createElement('div');
+                seg.className = "w-3 h-3 sm:w-5 sm:h-5 bg-sky-600 border border-sky-700 shadow-sm rounded-[1px]";
+                inner.appendChild(seg);
+            }
+            wrapper.appendChild(inner);
+            return wrapper;
+        }
+
+        function createOneCubeElement() {
+            const el = document.createElement('div');
+            el.className = "w-3 h-3 sm:w-5 sm:h-5 rounded-[2px] shadow-sm bg-amber-400 border border-amber-500 cursor-pointer hover:brightness-110 active:scale-95 transition-transform";
+            el.onclick = removeOne;
+            return el;
+        }
+
+        // --- UI Updates ---
+
+        function updateUI() {
+            // Update Tens
+            tensContainer.innerHTML = '';
+            for (let i = 0; i < tens; i++) {
+                tensContainer.appendChild(createTenRodElement());
+            }
+            tensZero.style.display = tens === 0 ? 'block' : 'none';
+            btnRemoveTen.disabled = tens === 0;
+
+            // Update Ones
+            onesContainer.innerHTML = '';
+            for (let i = 0; i < ones; i++) {
+                onesContainer.appendChild(createOneCubeElement());
+            }
+            onesZero.style.display = ones === 0 ? 'block' : 'none';
+            btnRemoveOne.disabled = ones === 0;
+
+            // Regroup Hint
+            if (ones >= 10) {
+                regroupHint.classList.remove('hidden');
+                // Fill bundle preview if empty
+                const bundle = document.getElementById('bundle-preview');
+                if (bundle.children.length === 0) {
+                     for(let i=0; i<10; i++) {
+                         const d = document.createElement('div');
+                         d.className = "w-2.5 h-2.5 sm:w-3 sm:h-3 bg-amber-500 rounded-[1px]";
+                         bundle.appendChild(d);
+                     }
+                }
+            } else {
+                regroupHint.classList.add('hidden');
+            }
+
+            // Drag State Visuals
+            if (isRegroupingDrag) {
+                tensColumn.classList.add('bg-sky-100/80', 'ring-inset', 'ring-4', 'ring-sky-300');
+            } else {
+                tensColumn.classList.remove('bg-sky-100/80', 'ring-inset', 'ring-4', 'ring-sky-300');
+            }
+        }
+
+        function showNotification(msg) {
+            if (notificationTimeout) clearTimeout(notificationTimeout);
+            
+            notificationContainer.innerHTML = `
+                <div class="bg-sky-600 text-white px-4 py-1 rounded-full text-sm font-bold animate-bounce shadow-lg">
+                    ${msg}
+                </div>
+            `;
+
+            notificationTimeout = setTimeout(() => {
+                notificationContainer.innerHTML = '';
+            }, 1500);
+        }
+
+        // --- Sound Engine ---
+
+        function playSound(type) {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'pop') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'delete') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.15);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
+            } else if (type === 'magic') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(800, now + 0.4);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.linearRampToValueAtTime(0.3, now + 0.2);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            }
+        }
+
+        function speakNumber() {
+            if ('speechSynthesis' in window) {
+                const total = tens * 10 + ones;
+                const text = `${total}`;
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // --- Game Logic ---
+
+        function addOne() {
+            if (ones < MAX_ONES) {
+                playSound('pop');
+                ones++;
+                updateUI();
+            } else {
+                showNotification("Too many ones! Time to regroup.");
+            }
+        }
+
+        function removeOne() {
+            if (ones > 0) {
+                playSound('delete');
+                ones--;
+                updateUI();
+            }
+        }
+
+        function addTen() {
+            if (tens < MAX_TENS) {
+                playSound('pop');
+                tens++;
+                updateUI();
+            } else {
+                showNotification("Board full!");
+            }
+        }
+
+        function removeTen() {
+            if (tens > 0) {
+                playSound('delete');
+                tens--;
+                updateUI();
+            }
+        }
+
+        function resetBoard() {
+            playSound('delete');
+            tens = 0;
+            ones = 0;
+            updateUI();
+        }
+
+        // --- Regrouping (Drag & Drop) ---
+
+        function startDrag(e) {
+            e.preventDefault();
+            isRegroupingDrag = true;
+            
+            // Populate Drag Preview if empty
+            if (dragPreviewRod.children.length === 0) {
+                for (let i = 0; i < 10; i++) {
+                    const d = document.createElement('div');
+                    d.className = "w-3 h-3 sm:w-5 sm:h-5 bg-sky-600 border border-sky-700 shadow-sm rounded-[1px]";
+                    dragPreviewRod.appendChild(d);
+                }
+            }
+
+            dragPreview.classList.remove('hidden');
+            moveDrag(e);
+            updateUI(); // To highlight column
+        }
+
+        function moveDrag(e) {
+            if (!isRegroupingDrag) return;
+            e.preventDefault();
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            dragPreview.style.left = clientX + 'px';
+            dragPreview.style.top = clientY + 'px';
+        }
+
+        function endDrag(e) {
+            if (!isRegroupingDrag) return;
+            isRegroupingDrag = false;
+            dragPreview.classList.add('hidden');
+            updateUI(); // Remove highlight
+
+            // Check collision with Tens Column
+            const rect = tensColumn.getBoundingClientRect();
+            const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+            const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+
+            if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                if (tens < MAX_TENS) {
+                    playSound('magic');
+                    tens++;
+                    ones -= 10;
+                    showNotification("Regrouped!");
+                    updateUI();
+                } else {
+                    showNotification("Board full!");
+                }
+            }
+        }
+
+        // --- Event Listeners ---
+
+        regroupDragHandle.addEventListener('mousedown', startDrag);
+        regroupDragHandle.addEventListener('touchstart', startDrag, { passive: false });
+
+        window.addEventListener('mousemove', moveDrag);
+        window.addEventListener('touchmove', moveDrag, { passive: false });
+
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchend', endDrag);
+
+        // --- Init ---
+        
+        // Initialize Icons
+        lucide.createIcons();
+        updateUI();
+
+    </script>
+</body>
+</html>
