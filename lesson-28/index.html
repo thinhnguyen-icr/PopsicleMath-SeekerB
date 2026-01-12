@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="../assets/brand.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tug of War: Math Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        .rope-pattern {
+            background: repeating-linear-gradient(
+                45deg,
+                #d97706,
+                #d97706 10px,
+                #b45309 10px,
+                #b45309 20px
+            );
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- BEAUTIFUL SKY & SUN --- */
+        .sky-bg {
+            background: linear-gradient(to bottom, #0ea5e9 0%, #38bdf8 40%, #bae6fd 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* The Sun */
+        .sun {
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, #fde047 20%, #facc15 60%, transparent 70%);
+            border-radius: 50%;
+            box-shadow: 0 0 40px 20px rgba(253, 224, 71, 0.5);
+            animation: sun-glow 4s infinite alternate;
+            z-index: 0;
+        }
+
+        @keyframes sun-glow {
+            from { transform: scale(1); opacity: 0.9; }
+            to { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* Fluffy Clouds */
+        .cloud-base {
+            position: absolute;
+            color: white;
+            opacity: 0.9;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            filter: drop-shadow(0 4px 2px rgba(0,0,0,0.05));
+        }
+        
+        .cloud-move-1 { animation: float 45s infinite linear; }
+        .cloud-move-2 { animation: float 35s infinite linear reverse; }
+        .cloud-move-3 { animation: float 55s infinite linear; }
+
+        @keyframes float {
+            from { transform: translateX(-120px); }
+            to { transform: translateX(100vw); }
+        }
+
+        .wiggle {
+            animation: wiggle 0.5s ease-in-out;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+
+        .pop-in {
+            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        #fireworksCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 60;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            transform: none !important;
+            pointer-events: none;
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="sky-bg h-screen w-screen overflow-hidden flex flex-col items-center relative text-slate-800">
+    <img src="../assets/logo-oodles-math.png" class="oodles-logo">
+    <!-- Sun & Clouds Background -->
+    <div class="sun"></div>
+    <div class="cloud-base text-8xl cloud-move-1" style="top: 5%; left: -10%;">☁️</div>
+    <div class="cloud-base text-6xl cloud-move-2" style="top: 15%; right: -10%; opacity: 0.7;">☁️</div>
+    <div class="cloud-base text-9xl cloud-move-3" style="top: 25%; left: -20%; opacity: 0.6; animation-delay: -20s;">☁️</div>
+    
+    <!-- Game Header -->
+    <header class="w-full p-4 flex justify-between items-center z-10 max-w-4xl">
+        <div class="bg-white/90 backdrop-blur rounded-2xl px-4 py-2 border-4 border-yellow-400 shadow-lg">
+            <span class="text-2xl font-bold text-yellow-600">⏱️ Time: <span id="timer">00:00</span></span>
+        </div>
+        <button id="muteBtn" class="bg-white/90 p-2 rounded-full border-2 border-slate-300 hover:bg-slate-100 transition">
+            🔊
+        </button>
+    </header>
+
+    <!-- Start Screen Overlay -->
+    <div id="startScreen" class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-[95%] text-center shadow-2xl border-8 border-blue-400 pop-in max-h-[90vh] overflow-y-auto">
+            <h1 class="text-4xl sm:text-5xl font-bold text-blue-600 mb-2">Tug of War</h1>
+            <h2 class="text-xl sm:text-2xl font-semibold text-orange-500 mb-4">Math Challenge (+ & -)</h2>
+            
+            <div class="flex justify-center gap-4 sm:gap-8 mb-4 text-5xl sm:text-6xl">
+                <div class="animate-bounce" style="animation-delay: 0s">🦁</div>
+                <div class="animate-bounce" style="animation-delay: 0.1s">🆚</div>
+                <div class="animate-bounce" style="animation-delay: 0.2s">🐯</div>
+            </div>
+
+            <!-- Time Selection -->
+            <div class="mb-4 bg-blue-50 p-3 rounded-xl border-2 border-blue-100">
+                <label class="block text-slate-600 mb-1 font-bold text-base">⏳ Game Duration:</label>
+                <div class="flex justify-center items-center gap-2">
+                    <input type="range" id="timeSlider" min="1" max="10" value="3" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    <span id="timeDisplay" class="font-bold text-xl text-blue-600 min-w-[3ch]">3m</span>
+                </div>
+            </div>
+
+            <p class="text-base text-slate-600 mb-4">Choose a game mode:</p>
+            
+            <div class="flex flex-col gap-3">
+                <button onclick="startGame('cpu')" class="w-full bg-green-500 hover:bg-green-600 text-white text-xl sm:text-2xl font-bold py-3 px-6 rounded-2xl shadow-[0_5px_0_rgb(21,128,61)] active:shadow-[0_2px_0_rgb(21,128,61)] active:translate-y-1 transition transform flex items-center justify-center gap-3">
+                    <span>👤 vs 🤖</span> 1 Player
+                </button>
+                <button onclick="startGame('pvp')" class="w-full bg-orange-500 hover:bg-orange-600 text-white text-xl sm:text-2xl font-bold py-3 px-6 rounded-2xl shadow-[0_5px_0_rgb(194,65,12)] active:shadow-[0_2px_0_rgb(194,65,12)] active:translate-y-1 transition transform flex items-center justify-center gap-3">
+                    <span>👤 vs 👤</span> 2 Players
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-[90%] text-center shadow-2xl border-8 border-purple-400 pop-in relative z-50">
+            <h1 id="winnerText" class="text-4xl font-bold mb-4">Game Over!</h1>
+            <div id="winnerIcon" class="text-8xl mb-6">🏆</div>
+            <p id="finalScore" class="text-xl text-slate-600 mb-8"></p>
+            <button onclick="resetGame()" class="w-full bg-blue-500 hover:bg-blue-600 text-white text-2xl font-bold py-3 px-8 rounded-2xl shadow-[0_6px_0_rgb(29,78,216)] active:shadow-[0_2px_0_rgb(29,78,216)] active:translate-y-1 transition transform">
+                Play Again ↺
+            </button>
+        </div>
+    </div>
+    
+    <!-- Fireworks Layer -->
+    <canvas id="fireworksCanvas"></canvas>
+
+    <!-- Main Game Area -->
+    <main class="flex-1 w-full max-w-6xl flex flex-col relative z-0 h-full pb-4">
+        
+        <!-- Tug of War Scene (Common) -->
+        <div class="relative w-full h-40 sm:h-56 flex items-end justify-center mb-2 overflow-hidden shrink-0">
+            <!-- Grass Ground -->
+            <div class="absolute bottom-0 w-[150%] h-12 bg-green-500 rounded-t-[100%] left-[-25%] shadow-[inset_0_10px_20px_rgba(0,0,0,0.1)] border-t-8 border-green-400"></div>
+
+            <!-- Ground Line Marker -->
+            <div class="absolute bottom-4 w-full h-4 bg-green-800/20 rounded-full opacity-50 z-0"></div>
+            
+            <!-- Center Marker -->
+            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-full border-l-4 border-dashed border-white/40 z-0"></div>
+            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-2xl z-0 font-bold text-white/80 drop-shadow-md">CENTER</div>
+
+            <!-- The Moving Group (Teams + Rope) -->
+            <div id="gameContainer" class="flex items-end transition-transform duration-500 ease-out z-10" style="transform: translateX(0px);">
+                
+                <!-- Left Team (Player 1) -->
+                <div class="flex flex-col items-end mr-2 relative">
+                    <div class="flex -space-x-4 mb-1">
+                        <span class="text-5xl sm:text-7xl transform scale-x-[-1] drop-shadow-xl z-10">🦁</span>
+                        <span class="text-4xl sm:text-6xl transform scale-x-[-1] drop-shadow-lg opacity-90 grayscale-[0.3]">🐻</span>
+                        <span class="text-4xl sm:text-6xl transform scale-x-[-1] drop-shadow-lg opacity-80 grayscale-[0.5]">🐼</span>
+                    </div>
+                    <div id="p1Label" class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-md absolute -top-4 right-10">P1</div>
+                </div>
+
+                <!-- The Rope -->
+                <div class="h-4 w-48 sm:w-80 rope-pattern relative self-end mb-6 rounded-full flex items-center justify-center shadow-lg border border-orange-800/30">
+                    <div class="absolute -top-10">
+                        <div class="w-1 h-10 bg-slate-700 mx-auto"></div>
+                        <div class="w-8 h-6 bg-red-600 text-white text-xs flex items-center justify-center font-bold shadow-sm border border-white/20">🚩</div>
+                    </div>
+                </div>
+
+                <!-- Right Team (CPU or Player 2) -->
+                <div class="flex flex-col items-start ml-2 relative">
+                    <div class="flex -space-x-4 mb-1 flex-row-reverse">
+                        <span class="text-5xl sm:text-7xl drop-shadow-xl z-10">🐯</span>
+                        <span class="text-4xl sm:text-6xl drop-shadow-lg opacity-90 grayscale-[0.3]">🦊</span>
+                        <span class="text-4xl sm:text-6xl drop-shadow-lg opacity-80 grayscale-[0.5]">🐺</span>
+                    </div>
+                     <div id="p2Label" class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-md absolute -top-4 left-10">CPU</div>
+                </div>
+
+            </div>
+        </div>
+        
+        <!-- Progress Bar (Common) -->
+        <div class="w-full max-w-md mx-auto bg-slate-200 h-3 rounded-full mb-2 overflow-hidden relative border-2 border-slate-300 shrink-0 shadow-inner">
+            <div id="progressBar" class="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500 w-1/2"></div>
+            <div class="absolute top-0 left-0 h-full w-1 bg-blue-500"></div>
+            <div class="absolute top-0 right-0 h-full w-1 bg-red-500"></div>
+        </div>
+
+        <!-- Dynamic Game Controls Container -->
+        <div id="gameControls" class="flex-1 w-full px-4 relative flex gap-4 min-h-0">
+            
+            <!-- MODE 1: Single Player View (Centered) -->
+            <div id="singlePlayerView" class="hidden w-full flex-col items-center justify-center bg-white/60 backdrop-blur-md rounded-t-[2rem] shadow-sm p-4 h-full border-t border-white/50">
+                 <div class="text-center mb-4 sm:mb-8">
+                    <p class="text-slate-600 text-sm font-semibold mb-1 uppercase tracking-wider">Solve:</p>
+                    <div class="text-5xl sm:text-7xl font-black text-slate-800 bg-white px-6 py-3 rounded-3xl shadow-sm border-4 border-slate-100 flex items-center justify-center gap-3">
+                        <span id="spNum1">0</span><span id="spOp" class="text-blue-500">+</span><span id="spNum2">0</span>
+                    </div>
+                </div>
+                <div id="spAnswersGrid" class="grid grid-cols-2 gap-4 w-full max-w-lg"></div>
+                <p id="spFeedback" class="mt-4 text-slate-600 text-sm font-medium h-6">Choose correctly!</p>
+            </div>
+
+            <!-- MODE 2: Two Player View (Split Screen) -->
+            <div id="twoPlayerView" class="hidden w-full flex-row gap-2 sm:gap-4 h-full">
+                
+                <!-- PLAYER 1 (Left) -->
+                <div class="flex-1 bg-blue-100/80 backdrop-blur-md rounded-2xl border-4 border-blue-200 p-2 sm:p-4 flex flex-col items-center justify-center relative shadow-sm">
+                    <div class="text-blue-700 font-bold mb-2">PLAYER 1</div>
+                    <div class="text-3xl sm:text-5xl font-black text-slate-800 bg-white px-4 py-2 rounded-2xl shadow-sm border-2 border-blue-100 flex items-center gap-2 mb-4">
+                        <span id="p1Num1">0</span><span id="p1Op">+</span><span id="p1Num2">0</span>
+                    </div>
+                    <div id="p1Grid" class="grid grid-cols-2 gap-2 w-full max-w-sm"></div>
+                </div>
+
+                <!-- PLAYER 2 (Right) -->
+                <div class="flex-1 bg-red-100/80 backdrop-blur-md rounded-2xl border-4 border-red-200 p-2 sm:p-4 flex flex-col items-center justify-center relative shadow-sm">
+                    <div class="text-red-700 font-bold mb-2">PLAYER 2</div>
+                    <div class="text-3xl sm:text-5xl font-black text-slate-800 bg-white px-4 py-2 rounded-2xl shadow-sm border-2 border-red-100 flex items-center gap-2 mb-4">
+                        <span id="p2Num1">0</span><span id="p2Op">+</span><span id="p2Num2">0</span>
+                    </div>
+                    <div id="p2Grid" class="grid grid-cols-2 gap-2 w-full max-w-sm"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // --- Game Config & State ---
+        const MAX_OFFSET = 5; 
+        let currentOffset = 0; 
+        let gameActive = false;
+        let gameMode = 'cpu'; // 'cpu' or 'pvp'
+        
+        let timeLeft = 180;
+        let initialTime = 180;
+        let cpuTimer = null;
+        let gameTimer = null;
+        let isMuted = false;
+
+        // Player States
+        let p1State = { num1: 0, num2: 0, ans: 0 };
+        let p2State = { num1: 0, num2: 0, ans: 0 };
+        let spState = { num1: 0, num2: 0, ans: 0 };
+
+        // --- Audio Context ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            if (isMuted) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(783.99, now + 0.1);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'win') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523, now);
+                osc.frequency.setValueAtTime(659, now + 0.2);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 1.0);
+                osc.start(now); osc.stop(now + 1.0);
+            }
+        }
+
+        // --- Fireworks Logic ---
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+
+        function animateFireworks() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, index) => {
+                p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.alpha -= 0.015;
+                ctx.save(); ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; 
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+                if (p.alpha <= 0) particles.splice(index, 1);
+            });
+            if (Math.random() < 0.05 && particles.length < 300) {
+                 const x = Math.random() * canvas.width;
+                 const y = Math.random() * canvas.height / 2;
+                 const color = ['#f00','#0f0','#00f','#ff0'][Math.floor(Math.random()*4)];
+                 for(let i=0;i<20;i++) {
+                     particles.push({x, y, vx: Math.cos(i)*Math.random()*4, vy: Math.sin(i)*Math.random()*4, color, alpha: 1});
+                 }
+            }
+            if (particles.length > 0 || !gameActive) requestAnimationFrame(animateFireworks);
+        }
+
+        // --- Time Slider ---
+        const timeSlider = document.getElementById('timeSlider');
+        timeSlider.addEventListener('input', (e) => {
+            document.getElementById('timeDisplay').innerText = `${e.target.value}m`;
+        });
+
+        // --- Core Game Functions ---
+
+        function startGame(mode) {
+            gameMode = mode;
+            const selectedMins = parseInt(document.getElementById('timeSlider').value);
+            initialTime = selectedMins * 60;
+            
+            document.getElementById('startScreen').classList.add('hidden');
+            
+            // Setup UI based on mode
+            if (gameMode === 'cpu') {
+                document.getElementById('singlePlayerView').classList.remove('hidden');
+                document.getElementById('singlePlayerView').classList.add('flex');
+                document.getElementById('twoPlayerView').classList.add('hidden');
+                document.getElementById('twoPlayerView').classList.remove('flex');
+                document.getElementById('p2Label').innerText = "CPU";
+                document.getElementById('p2Label').classList.remove('bg-red-700');
+                document.getElementById('p2Label').classList.add('bg-red-500');
+            } else {
+                document.getElementById('singlePlayerView').classList.add('hidden');
+                document.getElementById('singlePlayerView').classList.remove('flex');
+                document.getElementById('twoPlayerView').classList.remove('hidden');
+                document.getElementById('twoPlayerView').classList.add('flex');
+                document.getElementById('p2Label').innerText = "P2";
+                document.getElementById('p2Label').classList.remove('bg-red-500');
+                document.getElementById('p2Label').classList.add('bg-red-700');
+            }
+
+            resetGameState();
+            gameActive = true;
+            particles = []; // clear fireworks
+            
+            // Initial Questions
+            if (gameMode === 'cpu') {
+                generateQuestion('single');
+            } else {
+                generateQuestion('p1');
+                generateQuestion('p2');
+            }
+
+            startTimers();
+            updateVisuals();
+        }
+
+        function resetGame() {
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+            particles = [];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function resetGameState() {
+            currentOffset = 0;
+            timeLeft = initialTime;
+            updateTimerDisplay();
+        }
+
+        function startTimers() {
+            clearInterval(cpuTimer);
+            clearInterval(gameTimer);
+
+            if (gameMode === 'cpu') {
+                cpuTimer = setInterval(() => {
+                    if (!gameActive) return;
+                    if (currentOffset > -MAX_OFFSET) {
+                        currentOffset--;
+                        wiggleContainer();
+                        updateVisuals();
+                        checkWinCondition();
+                    }
+                }, 7000);
+            }
+
+            gameTimer = setInterval(() => {
+                if (!gameActive) return;
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    endGame(currentOffset > 0 ? 'player' : (currentOffset < 0 ? 'cpu' : 'draw'));
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timer').innerText = `${m}:${s}`;
+        }
+
+        // --- Question Generation Logic (Updated for + and -) ---
+        
+        function getMathProblem() {
+            const isAddition = Math.random() < 0.5;
+
+            if (isAddition) {
+                let n1 = Math.floor(Math.random() * 45) + 5; 
+                let n2 = Math.floor(Math.random() * 45) + 5;
+                while(n1 + n2 > 100) n2 = Math.floor(Math.random() * 40) + 1;
+                return { n1, n2, operator: '+', ans: n1 + n2 };
+            } else {
+                // Subtraction: Ensure result is positive and operands reasonable
+                let n1 = Math.floor(Math.random() * 90) + 10; // Min 10
+                let n2 = Math.floor(Math.random() * (n1 - 5)) + 1; // Ensure some difference
+                return { n1, n2, operator: '-', ans: n1 - n2 };
+            }
+        }
+
+        function getOptions(correctVal) {
+            let answers = [correctVal];
+            while (answers.length < 4) {
+                let offset = Math.floor(Math.random() * 10) - 5;
+                if (offset === 0) offset = 1;
+                let fake = correctVal + offset;
+                // Ensure fake answers are positive and within reasonable 0-100 range for consistency
+                if (fake >= 0 && fake <= 100 && !answers.includes(fake)) answers.push(fake);
+            }
+            return answers.sort(() => Math.random() - 0.5);
+        }
+
+        function generateQuestion(who) {
+            if (!gameActive) return;
+
+            const prob = getMathProblem();
+            const opts = getOptions(prob.ans);
+
+            if (who === 'single') {
+                spState = { num1: prob.n1, num2: prob.n2, ans: prob.ans };
+                document.getElementById('spNum1').innerText = prob.n1;
+                document.getElementById('spOp').innerText = prob.operator;
+                document.getElementById('spNum2').innerText = prob.n2;
+                renderButtons('spAnswersGrid', opts, 'single');
+            } else if (who === 'p1') {
+                p1State = { num1: prob.n1, num2: prob.n2, ans: prob.ans };
+                document.getElementById('p1Num1').innerText = prob.n1;
+                document.getElementById('p1Op').innerText = prob.operator;
+                document.getElementById('p1Num2').innerText = prob.n2;
+                renderButtons('p1Grid', opts, 'p1');
+            } else if (who === 'p2') {
+                p2State = { num1: prob.n1, num2: prob.n2, ans: prob.ans };
+                document.getElementById('p2Num1').innerText = prob.n1;
+                document.getElementById('p2Op').innerText = prob.operator;
+                document.getElementById('p2Num2').innerText = prob.n2;
+                renderButtons('p2Grid', opts, 'p2');
+            }
+        }
+
+        function renderButtons(gridId, options, type) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            
+            const btnClass = type === 'single' 
+                ? "bg-white border-b-8 border-slate-200 text-slate-700 text-3xl sm:text-5xl font-bold py-4 sm:py-6 rounded-2xl hover:bg-slate-50 hover:border-b-4 hover:translate-y-1 active:border-b-0 active:translate-y-2 transition-all shadow-sm w-full"
+                : "bg-white border-b-4 border-slate-200 text-slate-700 text-xl sm:text-3xl font-bold py-3 sm:py-4 rounded-xl hover:bg-slate-50 active:translate-y-1 transition-all shadow-sm w-full";
+
+            options.forEach(ans => {
+                const btn = document.createElement('button');
+                btn.className = btnClass;
+                btn.innerText = ans;
+                btn.onclick = () => handleAnswer(ans, btn, type);
+                grid.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(val, btn, type) {
+            if (!gameActive) return;
+            if (btn.hasAttribute('disabled')) return;
+
+            let correctVal = 0;
+            let gridId = '';
+            if (type === 'single') { correctVal = spState.ans; gridId = 'spAnswersGrid'; }
+            if (type === 'p1') { correctVal = p1State.ans; gridId = 'p1Grid'; }
+            if (type === 'p2') { correctVal = p2State.ans; gridId = 'p2Grid'; }
+
+            if (val === correctVal) {
+                // CORRECT
+                const buttons = document.getElementById(gridId).querySelectorAll('button');
+                buttons.forEach(b => b.setAttribute('disabled', 'true'));
+
+                playSound('correct');
+                
+                if (type === 'single' || type === 'p1') {
+                    currentOffset++;
+                } else if (type === 'p2') {
+                    currentOffset--;
+                }
+
+                btn.classList.add('bg-green-200', 'border-green-400', 'text-green-700');
+                
+                if (type === 'single') {
+                     document.getElementById('spFeedback').innerText = "Correct! Pulling!";
+                     document.getElementById('spFeedback').className = "mt-4 text-green-600 font-bold pop-in";
+                }
+
+                updateVisuals();
+                checkWinCondition();
+                
+                if (gameActive) {
+                    setTimeout(() => generateQuestion(type), 500);
+                }
+
+            } else {
+                // WRONG
+                playSound('wrong');
+                btn.setAttribute('disabled', 'true');
+                btn.classList.add('bg-red-200', 'border-red-400', 'text-red-700', 'wiggle');
+
+                if (type === 'single' || type === 'p1') {
+                    if (currentOffset > -MAX_OFFSET) currentOffset--;
+                } else if (type === 'p2') {
+                    if (currentOffset < MAX_OFFSET) currentOffset++;
+                }
+                
+                wiggleContainer();
+                updateVisuals();
+                checkWinCondition();
+
+                if (type === 'single') {
+                    document.getElementById('spFeedback').innerText = "Oops! Pulled back!";
+                    document.getElementById('spFeedback').className = "mt-4 text-red-500 font-bold";
+                }
+            }
+        }
+
+        function wiggleContainer() {
+            const c = document.getElementById('gameContainer');
+            c.classList.add('translate-x-1');
+            setTimeout(() => c.classList.remove('translate-x-1'), 100);
+        }
+
+        function updateVisuals() {
+            const stepSize = 30;
+            const translateVal = currentOffset * -stepSize;
+            document.getElementById('gameContainer').style.transform = `translateX(${translateVal}px)`;
+
+            const progressPercent = ((currentOffset + MAX_OFFSET) / (MAX_OFFSET * 2)) * 100;
+            const bar = document.getElementById('progressBar');
+            bar.style.width = `${progressPercent}%`;
+            
+            if (currentOffset > 0) bar.className = 'h-full transition-all duration-300 w-1/2 bg-blue-500';
+            else if (currentOffset < 0) bar.className = 'h-full transition-all duration-300 w-1/2 bg-red-500';
+            else bar.className = 'h-full transition-all duration-300 w-1/2 bg-slate-400';
+        }
+
+        function checkWinCondition() {
+            if (currentOffset >= MAX_OFFSET) endGame('player');
+            else if (currentOffset <= -MAX_OFFSET) endGame('cpu');
+        }
+
+        function endGame(winner) {
+            gameActive = false;
+            clearInterval(cpuTimer);
+            clearInterval(gameTimer);
+
+            const screen = document.getElementById('gameOverScreen');
+            const title = document.getElementById('winnerText');
+            const icon = document.getElementById('winnerIcon');
+            const scoreText = document.getElementById('finalScore');
+
+            screen.classList.remove('hidden');
+
+            let p1Name = "BLUE TEAM";
+            let p2Name = gameMode === 'cpu' ? "RED TEAM (CPU)" : "RED TEAM";
+
+            if (winner === 'player') {
+                playSound('win');
+                title.innerText = `${p1Name} WINS!`;
+                title.className = "text-4xl font-bold mb-4 text-blue-600";
+                icon.innerText = "🏆 🦁";
+                scoreText.innerText = "Amazing teamwork!";
+                requestAnimationFrame(animateFireworks);
+            } else if (winner === 'cpu') {
+                playSound('win');
+                title.innerText = `${p2Name} WINS!`;
+                title.className = "text-4xl font-bold mb-4 text-red-600";
+                icon.innerText = "🥈 🐯";
+                scoreText.innerText = "Better luck next time!";
+                requestAnimationFrame(animateFireworks);
+            } else {
+                playSound('win');
+                title.innerText = "IT'S A TIE!";
+                title.className = "text-4xl font-bold mb-4 text-slate-600";
+                icon.innerText = "🤝";
+                scoreText.innerText = "Well played both sides!";
+            }
+        }
+
+        document.getElementById('muteBtn').onclick = function() {
+            isMuted = !isMuted;
+            this.innerText = isMuted ? '🔇' : '🔊';
+            this.classList.toggle('bg-red-100');
+        };
+
+    </script>
+</body>
+</html>
