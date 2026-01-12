@@ -274,6 +274,17 @@
         }
         .start-btn-large:active { transform: translateY(4px); box-shadow: 0 4px 0 #a16207; }
 
+        /* Canvas for fireworks */
+        #fireworks-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
     </style>
 </head>
 <body class="text-gray-700">
@@ -333,16 +344,18 @@
     <div id="dino-overlay" class="hidden">
         <h2 class="text-4xl font-black text-green-600 mb-2">GO DINO GO!</h2>
         <p class="dino-info">Jump over obstacles! 🌲🥚<br><span class="text-sm">(Tap or Space to Jump)</span></p>
+        <div class="text-2xl font-bold text-blue-600 mb-2">Time Left: <span id="dino-timer">15</span>s</div>
         <canvas id="dino-canvas" width="600" height="250"></canvas>
         <div id="dino-score" class="text-3xl font-black mt-4 text-orange-500">Score: 0</div>
         <button id="start-dino-btn" class="mt-6 start-btn-large text-xl px-8 py-3">START RUNNING!</button>
     </div>
 
     <div id="completion-overlay" class="hidden fixed inset-0 bg-white/95 z-50 flex flex-col justify-center items-center p-4 text-center">
-        <div class="text-8xl mb-4">🏆</div>
-        <h1 class="text-5xl font-black text-yellow-500 mb-4">YOU WON!</h1>
-        <div class="text-4xl font-bold text-blue-600 mb-8">Final Score: <span id="final-score">0</span></div>
-        <button id="play-again-btn" class="start-btn-large text-2xl px-12 py-4">Play Again ↺</button>
+        <canvas id="fireworks-canvas"></canvas>
+        <div class="text-8xl mb-4 relative z-20">🏆</div>
+        <h1 class="text-5xl font-black text-yellow-500 mb-4 relative z-20">YOU WON!</h1>
+        <div class="text-4xl font-bold text-blue-600 mb-8 relative z-20">Final Score: <span id="final-score">0</span></div>
+        <button id="play-again-btn" class="start-btn-large text-2xl px-12 py-4 relative z-20">Play Again ↺</button>
     </div>
 
     <script>
@@ -377,7 +390,8 @@
             dinoOverlay: document.getElementById('dino-overlay'),
             completionOverlay: document.getElementById('completion-overlay'),
             finalScore: document.getElementById('final-score'),
-            startOverlay: document.getElementById('start-overlay')
+            startOverlay: document.getElementById('start-overlay'),
+            dinoTimer: document.getElementById('dino-timer')
         };
 
         const sounds = {
@@ -404,6 +418,10 @@
             els.completionOverlay.classList.add('hidden');
             els.dinoOverlay.classList.add('hidden');
             els.game.classList.remove('hidden');
+            
+            // Stop fireworks
+            if(fireworksAnimationId) cancelAnimationFrame(fireworksAnimationId);
+
             questions.sort(() => Math.random() - 0.5);
             loadQuestion(0);
         }
@@ -484,6 +502,7 @@
                     const dinoBtn = document.getElementById('start-dino-btn');
                     dinoBtn.classList.remove('hidden');
                     dinoBtn.innerText = "START RUNNING!";
+                    dinoBtn.style.pointerEvents = 'auto'; // Ensure clickable
                     dinoBtn.onclick = function() {
                         this.classList.add('hidden');
                         startDinoGame();
@@ -613,6 +632,8 @@
         let gameSpeed = 5;
         let frameCount = 0;
         let clouds = [];
+        let gameStartTime = 0;
+        let isGameRunning = false;
         
         const obstacleTypes = ['🌵', '🌲', '🍄', '🥚'];
 
@@ -629,6 +650,9 @@
             obstacles = [];
             clouds = [];
             frameCount = 0;
+            gameStartTime = Date.now();
+            isGameRunning = true;
+
             // Generate some initial clouds
             for(let i=0; i<3; i++) {
                 clouds.push({x: Math.random() * canvas.width, y: Math.random() * 100, scale: 0.5 + Math.random() * 0.5});
@@ -638,6 +662,7 @@
             dino.dy = 0;
             dino.grounded = true;
             document.getElementById('dino-score').innerText = "Score: 0";
+            els.dinoTimer.innerText = "15";
             canvas.addEventListener('pointerdown', dinoJump);
             document.addEventListener('keydown', handleKeyJump);
             updateDinoGame();
@@ -646,7 +671,7 @@
         function handleKeyJump(e) { if(e.code==='Space') dinoJump(); }
 
         function dinoJump() {
-            if(dino.grounded) {
+            if(dino.grounded && isGameRunning) {
                 dino.dy = dino.jumpPower;
                 dino.grounded = false;
                 play('jump');
@@ -775,9 +800,21 @@
         }
 
         function updateDinoGame() {
+            if (!isGameRunning) return;
+
             ctx.clearRect(0,0, canvas.width, canvas.height);
             frameCount++;
             
+            // Timer Logic
+            const elapsed = Date.now() - gameStartTime;
+            const timeLeft = Math.max(0, 15 - Math.floor(elapsed / 1000));
+            els.dinoTimer.innerText = timeLeft;
+
+            if (timeLeft <= 0) {
+                endDinoRun("TIME'S UP!");
+                return;
+            }
+
             // Draw Scenery First
             drawBackground();
 
@@ -817,7 +854,7 @@
                     dino.x + 10 < ob.x + 25 && 
                     dino.y + 45 > 190
                 ) {
-                    crashDino();
+                    endDinoRun("CRASH!");
                     return;
                 }
 
@@ -832,14 +869,14 @@
             dinoGameId = requestAnimationFrame(updateDinoGame);
         }
 
-        function crashDino() {
-            if (dinoGameId) cancelAnimationFrame(dinoGameId);
-            play('crash');
-            // FIX: Don't remove the onclick handler, just update text
+        function endDinoRun(reason) {
+            isGameRunning = false;
+            cancelAnimationFrame(dinoGameId);
+            play(reason === 'CRASH!' ? 'crash' : 'correct');
+            
             const btn = document.getElementById('start-dino-btn');
-            btn.innerText = "CRASH! NEXT LEVEL >>";
+            btn.innerText = `${reason} NEXT LEVEL >>`;
             btn.classList.remove('hidden');
-            // Disable button interaction temporarily to prevent accidental restarts
             btn.style.pointerEvents = 'none'; 
             
             setTimeout(() => {
@@ -849,7 +886,6 @@
                 canvas.removeEventListener('pointerdown', dinoJump);
                 document.removeEventListener('keydown', handleKeyJump);
                 
-                // Re-enable button interaction for next time
                 btn.style.pointerEvents = 'auto';
 
                 currentQIndex++;
@@ -857,8 +893,96 @@
                 else {
                     els.finalScore.innerText = score;
                     els.completionOverlay.classList.remove('hidden');
+                    startFireworks();
                 }
             }, 1500);
+        }
+
+        // === FIREWORKS ===
+        let fireworksCanvas = document.getElementById('fireworks-canvas');
+        let fwCtx = fireworksCanvas.getContext('2d');
+        let fireworks = [];
+        let particles = [];
+        let fireworksAnimationId;
+
+        function resizeFireworksCanvas() {
+            fireworksCanvas.width = window.innerWidth;
+            fireworksCanvas.height = window.innerHeight;
+        }
+
+        function createFirework() {
+            const x = Math.random() * fireworksCanvas.width;
+            const y = fireworksCanvas.height;
+            const targetY = Math.random() * (fireworksCanvas.height / 2);
+            const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            fireworks.push({ x, y, targetY, color, speed: 5 + Math.random() * 5, radius: 3 });
+        }
+
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 30; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 1;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    color,
+                    alpha: 1,
+                    decay: 0.01 + Math.random() * 0.02
+                });
+            }
+        }
+
+        function animateFireworks() {
+            fwCtx.fillStyle = 'rgba(255, 255, 255, 0.1)'; // Trail effect
+            fwCtx.fillRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+
+            if (Math.random() < 0.05) createFirework();
+
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                let f = fireworks[i];
+                f.y -= f.speed;
+                
+                fwCtx.beginPath();
+                fwCtx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+                fwCtx.fillStyle = f.color;
+                fwCtx.fill();
+
+                if (f.y <= f.targetY) {
+                    createParticles(f.x, f.y, f.color);
+                    fireworks.splice(i, 1);
+                    play('pop'); // Reuse pop sound for explosion
+                }
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.1; // Gravity
+                p.alpha -= p.decay;
+
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                fwCtx.save();
+                fwCtx.globalAlpha = p.alpha;
+                fwCtx.beginPath();
+                fwCtx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                fwCtx.fillStyle = p.color;
+                fwCtx.fill();
+                fwCtx.restore();
+            }
+
+            fireworksAnimationId = requestAnimationFrame(animateFireworks);
+        }
+
+        function startFireworks() {
+            resizeFireworksCanvas();
+            animateFireworks();
+            window.addEventListener('resize', resizeFireworksCanvas);
         }
 
         // === START & RESTART LOGIC ===
