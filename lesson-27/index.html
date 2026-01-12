@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../assets/brand.css">
+    <link rel="stylesheet" href="../assets/brand.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tug of War: Addition Challenge</title>
@@ -71,10 +71,12 @@
             z-index: 60;
         }
 
-        /* Disabled state for wrong answers */
-        .disabled-overlay {
-            background-color: rgba(255, 255, 255, 0.7);
+        /* Disabled state for buttons */
+        button:disabled {
             cursor: not-allowed;
+            opacity: 0.6;
+            transform: none !important;
+            pointer-events: none;
         }
 
         /* Custom Scrollbar hide */
@@ -84,7 +86,7 @@
     </style>
 </head>
 <body class="sky-bg h-screen w-screen overflow-hidden flex flex-col items-center relative text-slate-800">
-<img src="../assets/logo-oodles-math.png" class="oodles-logo">
+    <img src="../assets/logo-oodles-math.png" class="oodles-logo">
     <!-- Background Clouds -->
     <div class="absolute top-4 left-0 text-white opacity-80 text-7xl cloud" style="animation-duration: 28s; top: 5%;">☁️</div>
     <div class="absolute top-20 left-0 text-white opacity-60 text-5xl cloud" style="animation-duration: 35s; animation-delay: -10s; top: 15%;">☁️</div>
@@ -225,9 +227,6 @@
                 
                 <!-- PLAYER 1 (Left) -->
                 <div class="flex-1 bg-blue-100/80 backdrop-blur-md rounded-2xl border-4 border-blue-200 p-2 sm:p-4 flex flex-col items-center justify-center relative shadow-sm">
-                    <div id="p1Overlay" class="hidden absolute inset-0 bg-slate-200/50 z-10 rounded-xl flex items-center justify-center">
-                        <span class="text-3xl">⏳</span>
-                    </div>
                     <div class="text-blue-700 font-bold mb-2">PLAYER 1</div>
                     <div class="text-3xl sm:text-5xl font-black text-slate-800 bg-white px-4 py-2 rounded-2xl shadow-sm border-2 border-blue-100 flex items-center gap-2 mb-4">
                         <span id="p1Num1">0</span><span>+</span><span id="p1Num2">0</span>
@@ -237,9 +236,6 @@
 
                 <!-- PLAYER 2 (Right) -->
                 <div class="flex-1 bg-red-100/80 backdrop-blur-md rounded-2xl border-4 border-red-200 p-2 sm:p-4 flex flex-col items-center justify-center relative shadow-sm">
-                     <div id="p2Overlay" class="hidden absolute inset-0 bg-slate-200/50 z-10 rounded-xl flex items-center justify-center">
-                        <span class="text-3xl">⏳</span>
-                    </div>
                     <div class="text-red-700 font-bold mb-2">PLAYER 2</div>
                     <div class="text-3xl sm:text-5xl font-black text-slate-800 bg-white px-4 py-2 rounded-2xl shadow-sm border-2 border-red-100 flex items-center gap-2 mb-4">
                         <span id="p2Num1">0</span><span>+</span><span id="p2Num2">0</span>
@@ -495,20 +491,26 @@
 
         function handleAnswer(val, btn, type) {
             if (!gameActive) return;
+            // Prevent double clicking on disabled buttons
+            if (btn.hasAttribute('disabled')) return;
 
             let correctVal = 0;
-            if (type === 'single') correctVal = spState.ans;
-            if (type === 'p1') correctVal = p1State.ans;
-            if (type === 'p2') correctVal = p2State.ans;
+            let gridId = '';
+            if (type === 'single') { correctVal = spState.ans; gridId = 'spAnswersGrid'; }
+            if (type === 'p1') { correctVal = p1State.ans; gridId = 'p1Grid'; }
+            if (type === 'p2') { correctVal = p2State.ans; gridId = 'p2Grid'; }
 
             if (val === correctVal) {
-                // CORRECT
+                // CORRECT ANSWER
+                
+                // 1. Disable ALL buttons for this user immediately to prevent multi-clicking
+                const buttons = document.getElementById(gridId).querySelectorAll('button');
+                buttons.forEach(b => b.setAttribute('disabled', 'true'));
+
                 playSound('correct');
                 
                 if (type === 'single' || type === 'p1') {
-                    currentOffset++; // Move Right (visually left for P1 win) - wait logic is P1 is LEFT side
-                    // If P1 wins, they pull rope TO THE LEFT.
-                    // My logic: currentOffset + is P1 advantage.
+                    currentOffset++; // Move Right (visually left for P1 win)
                 } else if (type === 'p2') {
                     currentOffset--; // P2 pulls to Right (Negative offset)
                 }
@@ -525,23 +527,35 @@
                 checkWinCondition();
                 
                 // Next Question Delay
-                setTimeout(() => generateQuestion(type), 500);
+                if (gameActive) {
+                    setTimeout(() => generateQuestion(type), 500);
+                }
 
             } else {
-                // WRONG
+                // WRONG ANSWER
                 playSound('wrong');
-                btn.classList.add('bg-red-200', 'border-red-400', 'text-red-700', 'wiggle');
                 
+                // 1. Disable JUST this button
+                btn.setAttribute('disabled', 'true');
+                btn.classList.add('bg-red-200', 'border-red-400', 'text-red-700', 'wiggle');
+
+                // 2. Penalty: Move offset AGAINST the player
+                if (type === 'single' || type === 'p1') {
+                    // Player 1 Wrong -> Rope moves towards CPU/P2 (Decrease offset)
+                    if (currentOffset > -MAX_OFFSET) currentOffset--;
+                } else if (type === 'p2') {
+                    // Player 2 Wrong -> Rope moves towards P1 (Increase offset)
+                    if (currentOffset < MAX_OFFSET) currentOffset++;
+                }
+                
+                // Update visuals immediately for the penalty
+                wiggleContainer();
+                updateVisuals();
+                checkWinCondition();
+
                 if (type === 'single') {
-                    document.getElementById('spFeedback').innerText = "Oops! Try again.";
+                    document.getElementById('spFeedback').innerText = "Oops! Pulled back!";
                     document.getElementById('spFeedback').className = "mt-4 text-red-500 font-bold";
-                } else {
-                    // Penalty for PVP: Disable controls for 1s
-                    const overlayId = type === 'p1' ? 'p1Overlay' : 'p2Overlay';
-                    document.getElementById(overlayId).classList.remove('hidden');
-                    setTimeout(() => {
-                        document.getElementById(overlayId).classList.add('hidden');
-                    }, 1000);
                 }
             }
         }
